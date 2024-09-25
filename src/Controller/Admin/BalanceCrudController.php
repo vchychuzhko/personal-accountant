@@ -2,21 +2,21 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Currency;
+use App\Entity\Balance;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
-class CurrencyCrudController extends AbstractCrudController
+class BalanceCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
     {
-        return Currency::class;
+        return Balance::class;
     }
 
     public function configureActions(Actions $actions): Actions
@@ -33,10 +33,8 @@ class CurrencyCrudController extends AbstractCrudController
             IdField::new('id')
                 ->hideOnForm(),
             TextField::new('name'),
-            NumberField::new('rate'),
-            CollectionField::new('balances')
-                ->setTemplatePath('admin/fields/balances.html.twig')
-                ->hideOnForm(),
+            AssociationField::new('currency'),
+            NumberField::new('amount'),
         ];
     }
 

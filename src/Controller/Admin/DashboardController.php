@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Balance;
 use App\Entity\Currency;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -39,9 +40,13 @@ class DashboardController extends AbstractDashboardController
             ->setTitle('Personal Accountant');
     }
 
+    /**
+     * @see https://fontawesome.com/search?q=money&o=r&m=free
+     */
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
+        yield MenuItem::linkToCrud('Balance', 'fas fa-coins', Balance::class);
         yield MenuItem::linkToCrud('Currency', 'fas fa-dollar', Currency::class);
     }
 }
