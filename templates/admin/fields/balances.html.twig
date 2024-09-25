@@ -12,7 +12,7 @@
                     crudAction: 'detail',
                     entityId: balance.id
                 }) }}">
-                    {{ balance.__toString }}
+                    {{ balance.name }} - {{ balance.amount }} {{ balance.currency }}
                 </a>
             </li>
         {% endfor %}

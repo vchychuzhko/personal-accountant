@@ -3,10 +3,6 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Balance;
-use App\Entity\Currency;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -21,14 +17,6 @@ class BalanceCrudController extends AbstractCrudController
         return Balance::class;
     }
 
-    public function configureActions(Actions $actions): Actions
-    {
-        return $actions
-            ->add(Crud::PAGE_EDIT, Action::INDEX)
-            ->add(Crud::PAGE_INDEX, Action::DETAIL)
-            ->add(Crud::PAGE_EDIT, Action::DETAIL);
-    }
-
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -41,8 +29,7 @@ class BalanceCrudController extends AbstractCrudController
                     return number_format($value, 2, '.', '');
                 }),
             NumberField::new('amount')
-                ->formatValue(function ($value, $balance) {
-                    /** @var Currency $currency */
+                ->formatValue(function ($value, Balance $balance) {
                     $currency = $balance->getCurrency();
 
                     return number_format($value / $currency->getRate(), 2, '.', '');
@@ -50,12 +37,6 @@ class BalanceCrudController extends AbstractCrudController
                 ->hideOnForm()
                 ->setLabel('Amount in USD'),
         ];
-    }
-
-    public function configureCrud(Crud $crud): Crud
-    {
-        return $crud
-            ->showEntityActionsInlined();
     }
 
     public function configureFilters(Filters $filters): Filters
