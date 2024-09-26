@@ -31,9 +31,7 @@ class DashboardController extends AbstractDashboardController
         $total = 0;
 
         foreach ($balances as $balance) {
-            $currency = $balance->getCurrency();
-
-            $total += $balance->getAmount() / $currency->getRate();
+            $total += $balance->getAmountInUsd();
         }
 
         return $this->render('admin/index.html.twig', [
@@ -72,5 +70,11 @@ class DashboardController extends AbstractDashboardController
     {
         return parent::configureCrud()
             ->showEntityActionsInlined();
+    }
+
+    public function configureAssets(): Assets
+    {
+        return parent::configureAssets()
+            ->addAssetMapperEntry('app');
     }
 }
