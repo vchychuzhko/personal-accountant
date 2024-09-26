@@ -30,9 +30,23 @@ class Currency
     #[ORM\OneToMany(targetEntity: Balance::class, mappedBy: 'currency')]
     private Collection $balances;
 
+    /**
+     * @var Collection<int, Deposit>
+     */
+    #[ORM\OneToMany(targetEntity: Deposit::class, mappedBy: 'currency')]
+    private Collection $deposits;
+
+    /**
+     * @var Collection<int, Loan>
+     */
+    #[ORM\OneToMany(targetEntity: Loan::class, mappedBy: 'currency')]
+    private Collection $loans;
+
     public function __construct()
     {
         $this->balances = new ArrayCollection();
+        $this->deposits = new ArrayCollection();
+        $this->loans = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -100,6 +114,66 @@ class Currency
             // set the owning side to null (unless already changed)
             if ($balance->getCurrency() === $this) {
                 $balance->setCurrency(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Deposit>
+     */
+    public function getDeposits(): Collection
+    {
+        return $this->deposits;
+    }
+
+    public function addDeposit(Deposit $deposit): static
+    {
+        if (!$this->deposits->contains($deposit)) {
+            $this->deposits->add($deposit);
+            $deposit->setCurrency($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeposit(Deposit $deposit): static
+    {
+        if ($this->deposits->removeElement($deposit)) {
+            // set the owning side to null (unless already changed)
+            if ($deposit->getCurrency() === $this) {
+                $deposit->setCurrency(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Loan>
+     */
+    public function getLoans(): Collection
+    {
+        return $this->loans;
+    }
+
+    public function addLoan(Loan $loan): static
+    {
+        if (!$this->loans->contains($loan)) {
+            $this->loans->add($loan);
+            $loan->setCurrency($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLoan(Loan $loan): static
+    {
+        if ($this->loans->removeElement($loan)) {
+            // set the owning side to null (unless already changed)
+            if ($loan->getCurrency() === $this) {
+                $loan->setCurrency(null);
             }
         }
 

@@ -2,19 +2,19 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Balance;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
+use App\Entity\Loan;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
-class BalanceCrudController extends AbstractCrudController
+class LoanCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
     {
-        return Balance::class;
+        return Loan::class;
     }
 
     public function configureFields(string $pageName): iterable
@@ -22,7 +22,7 @@ class BalanceCrudController extends AbstractCrudController
         return [
             IdField::new('id')
                 ->onlyOnIndex(),
-            TextField::new('name'),
+            TextField::new('person'),
             AssociationField::new('currency'),
             NumberField::new('amount')
                 ->formatValue(function ($value) {
@@ -34,12 +34,9 @@ class BalanceCrudController extends AbstractCrudController
                 })
                 ->hideOnForm()
                 ->setLabel('Amount in USD'),
+            DateField::new('created_at')
+                ->setFormat('dd-MM-yyyy')
+                ->setDisabled(),
         ];
-    }
-
-    public function configureFilters(Filters $filters): Filters
-    {
-        return $filters
-            ->add('currency');
     }
 }

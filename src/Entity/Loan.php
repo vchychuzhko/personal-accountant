@@ -2,11 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\BalanceRepository;
+use App\Repository\LoanRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: BalanceRepository::class)]
-class Balance
+#[ORM\Entity(repositoryClass: LoanRepository::class)]
+class Loan
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -14,28 +14,36 @@ class Balance
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    private ?string $person = null;
 
-    #[ORM\ManyToOne(inversedBy: 'balances')]
+    #[ORM\ManyToOne(inversedBy: 'loans')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Currency $currency = null;
 
     #[ORM\Column]
     private ?float $amount = null;
 
+    #[ORM\Column]
+    private ?\DateTimeImmutable $created_at = null;
+
+    public function __construct()
+    {
+        $this->created_at = new \DateTimeImmutable();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getPerson(): ?string
     {
-        return $this->name;
+        return $this->person;
     }
 
-    public function setName(string $name): static
+    public function setPerson(string $person): static
     {
-        $this->name = $name;
+        $this->person = $person;
 
         return $this;
     }
@@ -57,13 +65,6 @@ class Balance
         return $this->amount;
     }
 
-    public function getAmountInUsd(): ?float
-    {
-        $currency = $this->getCurrency();
-
-        return $this->getAmount() / $currency->getRate();
-    }
-
     public function setAmount(float $amount): static
     {
         $this->amount = $amount;
@@ -71,8 +72,27 @@ class Balance
         return $this;
     }
 
+    public function getAmountInUsd(): ?float
+    {
+        $currency = $this->getCurrency();
+
+        return $this->getAmount() / $currency->getRate();
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->created_at;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $created_at): static
+    {
+        $this->created_at = $created_at;
+
+        return $this;
+    }
+
     public function __toString(): string
     {
-        return $this->getName() . ' (' . $this->getCurrency() . ')';
+        return $this->getPerson() . ' (' . $this->getCurrency() . ')';
     }
 }

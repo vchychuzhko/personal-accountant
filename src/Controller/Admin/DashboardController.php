@@ -4,6 +4,8 @@ namespace App\Controller\Admin;
 
 use App\Entity\Balance;
 use App\Entity\Currency;
+use App\Entity\Deposit;
+use App\Entity\Loan;
 use App\Entity\Tag;
 use App\Repository\BalanceRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -52,6 +54,8 @@ class DashboardController extends AbstractDashboardController
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
         yield MenuItem::linkToCrud('Balance', 'fas fa-coins', Balance::class);
+        yield MenuItem::linkToCrud('Deposit', 'fas fa-percent', Deposit::class);
+        yield MenuItem::linkToCrud('Loan', 'fas fa-sack-dollar', Loan::class);
         yield MenuItem::linkToCrud('Tag', 'fas fa-tag', Tag::class);
         yield MenuItem::linkToCrud('Currency', 'fas fa-dollar', Currency::class);
     }

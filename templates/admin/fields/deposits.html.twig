@@ -1,0 +1,20 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
+{# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
+{% if (ea.crud.currentAction == 'index') or (field.value is empty) %}
+    <span>{{ field.value | length }} deposit(s)</span>
+{% else %}
+    <ul style="padding-left: 15px;">
+        {% for deposit in field.value %}
+            <li>
+                <a href="{{ path('admin', {
+                    crudControllerFqcn: 'App\\Controller\\Admin\\DepositCrudController',
+                    crudAction: 'detail',
+                    entityId: deposit.id
+                }) }}">
+                    {{ deposit.name }} - {{ deposit.amount }} {{ deposit.currency }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
