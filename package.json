@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "chartjs-plugin-autocolors": "^0.3.1"
+  }
+}

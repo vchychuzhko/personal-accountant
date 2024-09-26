@@ -25,4 +25,10 @@ return [
     'chart.js' => [
         'version' => '3.9.1',
     ],
+    'chartjs-plugin-autocolors' => [
+        'version' => '0.3.1',
+    ],
+    '@kurkle/color' => [
+        'version' => '0.3.2',
+    ],
 ];

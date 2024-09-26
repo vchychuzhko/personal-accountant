@@ -7,4 +7,12 @@ import './bootstrap.js';
  */
 import './styles/app.css';
 
+import autocolors from 'chartjs-plugin-autocolors';
+
+document.addEventListener('chartjs:init', function (event) {
+    const Chart = event.detail.Chart;
+
+    Chart.register(autocolors);
+});
+
 console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');
