@@ -4,7 +4,7 @@
 {% if (ea.crud.currentAction == 'index') or (field.value is empty) %}
     <span>{{ field.value | length }} deposit(s)</span>
 {% else %}
-    <ul style="padding-left: 15px;">
+    <ul style="padding-left: 15px; margin-bottom: 0;">
         {% for deposit in field.value %}
             <li>
                 <a href="{{ path('admin', {

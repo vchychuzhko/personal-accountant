@@ -1,0 +1,16 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
+{# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
+{% if (ea.crud.currentAction == 'index') or (field.value is empty) %}
+    <span>{{ field.value | length }} transaction(s)</span>
+{% else %}
+    <a href="{{ ea_url()
+        .setController('App\\Controller\\Admin\\TransactionCrudController')
+        .setAction('index')
+        .set('filters[tag][value]', entity.primaryKeyValue)
+        .set('filters[tag][comparison]', '=')
+        .unset('entityId')
+    }}">
+        {{ field.value | length }} transaction(s)
+    </a>
+{% endif %}

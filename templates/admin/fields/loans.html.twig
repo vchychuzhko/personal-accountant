@@ -4,7 +4,7 @@
 {% if (ea.crud.currentAction == 'index') or (field.value is empty) %}
     <span>{{ field.value | length }} loan(s)</span>
 {% else %}
-    <ul style="padding-left: 15px;">
+    <ul style="padding-left: 15px; margin-bottom: 0;">
         {% for loan in field.value %}
             <li>
                 <a href="{{ path('admin', {
