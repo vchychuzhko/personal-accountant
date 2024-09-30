@@ -2,21 +2,21 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Transaction;
+use App\Entity\Income;
+use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
-class TransactionCrudController extends AbstractCrudController
+class IncomeCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
     {
-        return Transaction::class;
+        return Income::class;
     }
 
     public function configureFields(string $pageName): iterable
@@ -25,7 +25,6 @@ class TransactionCrudController extends AbstractCrudController
             IdField::new('id')
                 ->onlyOnIndex(),
             TextField::new('name'),
-            AssociationField::new('tag'),
             AssociationField::new('balance'),
             NumberField::new('amount')
                 ->setNumDecimals(2),
@@ -40,7 +39,23 @@ class TransactionCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
-            ->add('balance')
-            ->add('tag');
+            ->add('balance');
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Income $entityInstance
+     * @return void
+     */
+    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        $balance = $entityInstance->getBalance();
+
+        $balance->setAmount($balance->getAmount() + $entityInstance->getAmount());
+
+        $entityManager->persist($balance);
+        $entityManager->flush();
+
+        parent::persistEntity($entityManager, $entityInstance);
     }
 }

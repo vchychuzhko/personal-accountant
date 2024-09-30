@@ -2,7 +2,7 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Exchange;
+use App\Entity\Payment;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -10,12 +10,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
-class ExchangeCrudController extends AbstractCrudController
+class PaymentCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
     {
-        return Exchange::class;
+        return Payment::class;
     }
 
     public function configureFields(string $pageName): iterable
@@ -23,13 +24,13 @@ class ExchangeCrudController extends AbstractCrudController
         return [
             IdField::new('id')
                 ->onlyOnIndex(),
-            AssociationField::new('balance_from'),
-            AssociationField::new('balance_to'),
+            TextField::new('name'),
+            AssociationField::new('tag'),
+            AssociationField::new('balance'),
             NumberField::new('amount')
                 ->setNumDecimals(2),
-            NumberField::new('result')
-                ->setNumDecimals(2),
-            NumberField::new('rate')
+            NumberField::new('amount_in_usd')
+                ->setNumDecimals(2)
                 ->hideOnForm(),
             DateTimeField::new('created_at')
                 ->setFormat('dd-MM-yyyy HH:mm'),
@@ -39,25 +40,22 @@ class ExchangeCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
-            ->add('balance_from')
-            ->add('balance_to');
+            ->add('balance')
+            ->add('tag');
     }
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param Exchange $entityInstance
+     * @param Payment $entityInstance
      * @return void
      */
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
-        $balanceFrom = $entityInstance->getBalanceFrom();
-        $balanceTo = $entityInstance->getBalanceTo();
+        $balance = $entityInstance->getBalance();
 
-        $balanceFrom->setAmount($balanceFrom->getAmount() - $entityInstance->getAmount());
-        $balanceTo->setAmount($balanceTo->getAmount() + $entityInstance->getResult());
+        $balance->setAmount($balance->getAmount() - $entityInstance->getAmount());
 
-        $entityManager->persist($balanceFrom);
-        $entityManager->persist($balanceTo);
+        $entityManager->persist($balance);
         $entityManager->flush();
 
         parent::persistEntity($entityManager, $entityInstance);

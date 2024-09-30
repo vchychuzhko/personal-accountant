@@ -26,10 +26,16 @@ class Balance
     private ?float $amount = null;
 
     /**
-     * @var Collection<int, Transaction>
+     * @var Collection<int, Income>
      */
-    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'balance')]
-    private Collection $transactions;
+    #[ORM\OneToMany(targetEntity: Income::class, mappedBy: 'balance')]
+    private Collection $incomes;
+
+    /**
+     * @var Collection<int, Payment>
+     */
+    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'balance')]
+    private Collection $payments;
 
     /**
      * @var Collection<int, Exchange>
@@ -45,7 +51,8 @@ class Balance
 
     public function __construct()
     {
-        $this->transactions = new ArrayCollection();
+        $this->incomes = new ArrayCollection();
+        $this->payments = new ArrayCollection();
         $this->exchanges_from = new ArrayCollection();
         $this->exchanges_to = new ArrayCollection();
     }
@@ -99,29 +106,59 @@ class Balance
     }
 
     /**
-     * @return Collection<int, Transaction>
+     * @return Collection<int, Income>
      */
-    public function getTransactions(): Collection
+    public function getIncomes(): Collection
     {
-        return $this->transactions;
+        return $this->incomes;
     }
 
-    public function addTransaction(Transaction $transaction): static
+    public function addIncome(Income $income): static
     {
-        if (!$this->transactions->contains($transaction)) {
-            $this->transactions->add($transaction);
-            $transaction->setBalance($this);
+        if (!$this->incomes->contains($income)) {
+            $this->incomes->add($income);
+            $income->setBalance($this);
         }
 
         return $this;
     }
 
-    public function removeTransaction(Transaction $transaction): static
+    public function removeIncome(Income $income): static
     {
-        if ($this->transactions->removeElement($transaction)) {
+        if ($this->incomes->removeElement($income)) {
             // set the owning side to null (unless already changed)
-            if ($transaction->getBalance() === $this) {
-                $transaction->setBalance(null);
+            if ($income->getBalance() === $this) {
+                $income->setBalance(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): static
+    {
+        if (!$this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setBalance($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): static
+    {
+        if ($this->payments->removeElement($payment)) {
+            // set the owning side to null (unless already changed)
+            if ($payment->getBalance() === $this) {
+                $payment->setBalance(null);
             }
         }
 

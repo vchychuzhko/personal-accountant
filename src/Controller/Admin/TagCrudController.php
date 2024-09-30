@@ -21,8 +21,8 @@ class TagCrudController extends AbstractCrudController
             IdField::new('id')
                 ->onlyOnIndex(),
             TextField::new('name'),
-            CollectionField::new('transactions')
-                ->setTemplatePath('admin/fields/transactions_by_tag.html.twig')
+            CollectionField::new('payments')
+                ->setTemplatePath('admin/fields/payments_by_tag.html.twig')
                 ->hideOnForm(),
         ];
     }

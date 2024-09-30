@@ -2,15 +2,15 @@
 {# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
 {% if (ea.crud.currentAction == 'index') or (field.value is empty) %}
-    <span>{{ field.value | length }} transaction(s)</span>
+    <span>{{ field.value | length }} payment(s)</span>
 {% else %}
     <a href="{{ ea_url()
-        .setController('App\\Controller\\Admin\\TransactionCrudController')
+        .setController('App\\Controller\\Admin\\PaymentCrudController')
         .setAction('index')
         .set('filters[tag][value]', entity.primaryKeyValue)
         .set('filters[tag][comparison]', '=')
         .unset('entityId')
     }}">
-        {{ field.value | length }} transaction(s)
+        {{ field.value | length }} payment(s)
     </a>
 {% endif %}

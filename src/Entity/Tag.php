@@ -19,14 +19,14 @@ class Tag
     private ?string $name = null;
 
     /**
-     * @var Collection<int, Transaction>
+     * @var Collection<int, Payment>
      */
-    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'tag')]
-    private Collection $transactions;
+    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'tag')]
+    private Collection $payments;
 
     public function __construct()
     {
-        $this->transactions = new ArrayCollection();
+        $this->payments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -47,29 +47,29 @@ class Tag
     }
 
     /**
-     * @return Collection<int, Transaction>
+     * @return Collection<int, Payment>
      */
-    public function getTransactions(): Collection
+    public function getPayments(): Collection
     {
-        return $this->transactions;
+        return $this->payments;
     }
 
-    public function addTransaction(Transaction $transaction): static
+    public function addPayment(Payment $payment): static
     {
-        if (!$this->transactions->contains($transaction)) {
-            $this->transactions->add($transaction);
-            $transaction->setTag($this);
+        if (!$this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setTag($this);
         }
 
         return $this;
     }
 
-    public function removeTransaction(Transaction $transaction): static
+    public function removePayment(Payment $payment): static
     {
-        if ($this->transactions->removeElement($transaction)) {
+        if ($this->payments->removeElement($payment)) {
             // set the owning side to null (unless already changed)
-            if ($transaction->getTag() === $this) {
-                $transaction->setTag(null);
+            if ($payment->getTag() === $this) {
+                $payment->setTag(null);
             }
         }
 

@@ -37,8 +37,11 @@ class BalanceCrudController extends AbstractCrudController
 
             FormField::addFieldset()
                 ->onlyOnDetail(),
-            CollectionField::new('transactions')
-                ->setTemplatePath('admin/fields/transactions_by_balance.html.twig')
+            CollectionField::new('incomes')
+                ->setTemplatePath('admin/fields/incomes_by_balance.html.twig')
+                ->onlyOnDetail(),
+            CollectionField::new('payments')
+                ->setTemplatePath('admin/fields/payments_by_balance.html.twig')
                 ->onlyOnDetail(),
             CollectionField::new('exchanges_from')
                 ->setTemplatePath('admin/fields/exchanges_by_balance_from.html.twig')

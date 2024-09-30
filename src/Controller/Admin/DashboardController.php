@@ -6,12 +6,14 @@ use App\Entity\Balance;
 use App\Entity\Currency;
 use App\Entity\Deposit;
 use App\Entity\Exchange;
+use App\Entity\Income;
 use App\Entity\Loan;
 use App\Entity\Tag;
-use App\Entity\Transaction;
+use App\Entity\Payment;
 use App\Repository\BalanceRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -37,7 +39,7 @@ class DashboardController extends AbstractDashboardController
         }
 
         return $this->render('admin/index.html.twig', [
-            'total' => number_format($total, 2, '.', ''),
+            'total' => number_format($total, 2, '.', ','),
         ]);
     }
 
@@ -67,7 +69,8 @@ class DashboardController extends AbstractDashboardController
         return parent::configureActions()
             ->add(Crud::PAGE_EDIT, Action::INDEX)
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
-            ->add(Crud::PAGE_EDIT, Action::DETAIL);
+            ->add(Crud::PAGE_EDIT, Action::DETAIL)
+            ->remove(Crud::PAGE_INDEX, Action::DELETE);
     }
 
     public function configureCrud(): Crud
