@@ -9,7 +9,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
 class DepositCrudController extends AbstractCrudController
@@ -30,19 +29,14 @@ class DepositCrudController extends AbstractCrudController
             AssociationField::new('currency'),
 
             NumberField::new('amount')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                }),
+                ->setNumDecimals(2)
+        ,
             NumberField::new('expected_profit')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                })
+                ->setNumDecimals(2)
                 ->hideOnForm()
                 ->setLabel('Expected profit'),
             NumberField::new('expected_total')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                })
+                ->setNumDecimals(2)
                 ->hideOnForm()
                 ->setLabel('Expected total'),
 
@@ -50,21 +44,15 @@ class DepositCrudController extends AbstractCrudController
                 ->addCssClass('wide')
                 ->onlyOnDetail(),
             NumberField::new('amount_in_usd')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                })
+                ->setNumDecimals(2)
                 ->onlyOnDetail()
                 ->setLabel('Amount in USD'),
             NumberField::new('expected_profit_in_usd')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                })
+                ->setNumDecimals(2)
                 ->onlyOnDetail()
                 ->setLabel('Expected profit in USD'),
             NumberField::new('expected_total_in_usd')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                })
+                ->setNumDecimals(2)
                 ->onlyOnDetail()
                 ->setLabel('Expected total in USD'),
 

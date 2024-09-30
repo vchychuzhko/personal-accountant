@@ -29,13 +29,9 @@ class BalanceCrudController extends AbstractCrudController
             TextField::new('name'),
             AssociationField::new('currency'),
             NumberField::new('amount')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                }),
+                ->setNumDecimals(2),
             NumberField::new('amount_in_usd')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                })
+                ->setNumDecimals(2)
                 ->hideOnForm()
                 ->setLabel('Amount in USD'),
 

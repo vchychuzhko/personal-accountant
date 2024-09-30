@@ -25,18 +25,13 @@ class ExchangeCrudController extends AbstractCrudController
             AssociationField::new('balance_from'),
             AssociationField::new('balance_to'),
             NumberField::new('amount')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                }),
+                ->setNumDecimals(2),
             NumberField::new('result')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                }),
+                ->setNumDecimals(2),
             NumberField::new('rate')
                 ->hideOnForm(),
             DateTimeField::new('created_at')
-                ->setFormat('dd-MM-yyyy HH:mm')
-                ->setDisabled(),
+                ->setFormat('dd-MM-yyyy HH:mm'),
         ];
     }
 

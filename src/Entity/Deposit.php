@@ -101,10 +101,7 @@ class Deposit
 
     public function getExpectedTotal(): ?float
     {
-        $interest = $this->getInterest();
-        $period = $this->getPeriod();
-
-        return $this->getAmount() + $this->getAmount() * ($interest / 100 * ($period / 12));
+        return $this->getAmount() + $this->getExpectedProfit();
     }
 
     public function getExpectedTotalInUsd(): ?float
@@ -150,11 +147,6 @@ class Deposit
         return $this;
     }
 
-    public function __toString(): string
-    {
-        return $this->getName() . ' (' . $this->getCurrency() . ')';
-    }
-
     public function getPeriod(): ?int
     {
         return $this->period;
@@ -165,5 +157,10 @@ class Deposit
         $this->period = $period;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->getName() . ' (' . $this->getCurrency() . ')';
     }
 }

@@ -25,19 +25,15 @@ class TransactionCrudController extends AbstractCrudController
             IdField::new('id')
                 ->onlyOnIndex(),
             TextField::new('name'),
+            AssociationField::new('tag'),
             AssociationField::new('balance'),
             NumberField::new('amount')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                }),
+                ->setNumDecimals(2),
             NumberField::new('amount_in_usd')
-                ->formatValue(function ($value) {
-                    return number_format($value, 2, '.', '');
-                }),
-            AssociationField::new('tag'),
+                ->setNumDecimals(2)
+                ->hideOnForm(),
             DateTimeField::new('created_at')
-                ->setFormat('dd-MM-yyyy HH:mm')
-                ->setDisabled(),
+                ->setFormat('dd-MM-yyyy HH:mm'),
         ];
     }
 
