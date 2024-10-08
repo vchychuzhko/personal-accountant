@@ -1,8 +1,18 @@
 {# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
 {# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
-{% if (ea.crud.currentAction == 'index') or (field.value is empty) %}
-    <span>{{ field.value | length }} balance(s)</span>
+{% if (field.value is empty) %}
+    <span>No balances</span>
+{% elseif (ea.crud.currentAction == 'index') %}
+    <a href="{{ ea_url()
+        .setController('App\\Controller\\Admin\\BalanceCrudController')
+        .setAction('index')
+        .set('filters[currency][value]', entity.primaryKeyValue)
+        .set('filters[currency][comparison]', '=')
+        .unset('entityId')
+    }}">
+        {{ field.value | length }} balance(s)
+    </a>
 {% else %}
     <ul style="padding-left: 15px; margin-bottom: 0;">
         {% for balance in field.value %}

@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Income;
 use Doctrine\ORM\EntityManagerInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -40,6 +41,12 @@ class IncomeCrudController extends AbstractCrudController
     {
         return $filters
             ->add('balance');
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setDefaultSort(['created_at' => 'DESC']);
     }
 
     /**

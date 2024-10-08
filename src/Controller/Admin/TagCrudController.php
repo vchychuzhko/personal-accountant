@@ -3,9 +3,14 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Tag;
+use Doctrine\ORM\QueryBuilder;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
 class TagCrudController extends AbstractCrudController
@@ -15,14 +20,37 @@ class TagCrudController extends AbstractCrudController
         return Tag::class;
     }
 
+    public function createIndexQueryBuilder(
+        SearchDto $searchDto,
+        EntityDto $entityDto,
+        FieldCollection $fields,
+        FilterCollection $filters
+    ): QueryBuilder {
+        $iqb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+
+        $sortFields = $searchDto->getSort();
+
+        if (isset($sortFields['payments_count'])) {
+            $sortDirection = $sortFields['payments_count'];
+
+            $iqb->leftJoin('entity.payments', 'payment')
+                ->addSelect('COUNT(payment.id) AS HIDDEN payments_count')
+                ->groupBy('entity.id')
+                ->orderBy('payments_count', $sortDirection);
+        }
+
+        return $iqb;
+    }
+
     public function configureFields(string $pageName): iterable
     {
         return [
             IdField::new('id')
                 ->onlyOnIndex(),
             TextField::new('name'),
-            CollectionField::new('payments')
+            NumberField::new('payments_count', 'Payments')
                 ->setTemplatePath('admin/fields/payments_by_tag.html.twig')
+                ->setSortable(true)
                 ->hideOnForm(),
         ];
     }

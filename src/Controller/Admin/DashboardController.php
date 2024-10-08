@@ -56,9 +56,12 @@ class DashboardController extends AbstractDashboardController
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
         yield MenuItem::linkToCrud('Balance', 'fas fa-coins', Balance::class);
-        yield MenuItem::linkToCrud('Deposit', 'fas fa-percent', Deposit::class);
-        yield MenuItem::linkToCrud('Transaction', 'fas fa-money-bill', Transaction::class);
+        yield MenuItem::section('Transactions');
+        yield MenuItem::linkToCrud('Income', 'fas fa-money-bill-trend-up', Income::class);
+        yield MenuItem::linkToCrud('Payment', 'fas fa-money-bill', Payment::class);
         yield MenuItem::linkToCrud('Exchange', 'fas fa-hand-holding-dollar', Exchange::class);
+        yield MenuItem::section();
+        yield MenuItem::linkToCrud('Deposit', 'fas fa-percent', Deposit::class);
         yield MenuItem::linkToCrud('Loan', 'fas fa-sack-dollar', Loan::class);
         yield MenuItem::linkToCrud('Tag', 'fas fa-tag', Tag::class);
         yield MenuItem::linkToCrud('Currency', 'fas fa-dollar', Currency::class);

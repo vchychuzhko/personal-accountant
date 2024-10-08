@@ -54,6 +54,11 @@ class Tag
         return $this->payments;
     }
 
+    public function getPaymentsCount(): int
+    {
+        return count($this->payments);
+    }
+
     public function addPayment(Payment $payment): static
     {
         if (!$this->payments->contains($payment)) {

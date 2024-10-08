@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Exchange;
 use Doctrine\ORM\EntityManagerInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -41,6 +42,12 @@ class ExchangeCrudController extends AbstractCrudController
         return $filters
             ->add('balance_from')
             ->add('balance_to');
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setDefaultSort(['created_at' => 'DESC']);
     }
 
     /**

@@ -4,8 +4,14 @@ namespace App\Controller\Admin;
 
 use App\Entity\Payment;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
@@ -17,6 +23,28 @@ class PaymentCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string
     {
         return Payment::class;
+    }
+
+    public function createIndexQueryBuilder(
+        SearchDto $searchDto,
+        EntityDto $entityDto,
+        FieldCollection $fields,
+        FilterCollection $filters
+    ): QueryBuilder {
+        $iqb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+
+        $sortFields = $searchDto->getSort();
+
+        if (isset($sortFields['amount_in_usd'])) {
+            $sortDirection = $sortFields['amount_in_usd'];
+
+            $iqb->leftJoin('entity.balance', 'balance')
+                ->leftJoin('balance.currency', 'currency')
+                ->addSelect('(entity.amount / currency.rate) AS HIDDEN amount_in_usd')
+                ->orderBy('amount_in_usd', $sortDirection);
+        }
+
+        return $iqb;
     }
 
     public function configureFields(string $pageName): iterable
@@ -31,6 +59,7 @@ class PaymentCrudController extends AbstractCrudController
                 ->setNumDecimals(2),
             NumberField::new('amount_in_usd')
                 ->setNumDecimals(2)
+                ->setSortable(true)
                 ->hideOnForm(),
             DateTimeField::new('created_at')
                 ->setFormat('dd-MM-yyyy HH:mm'),
@@ -41,7 +70,14 @@ class PaymentCrudController extends AbstractCrudController
     {
         return $filters
             ->add('balance')
-            ->add('tag');
+            ->add('tag')
+            ->add('created_at');
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setDefaultSort(['created_at' => 'DESC']);
     }
 
     /**

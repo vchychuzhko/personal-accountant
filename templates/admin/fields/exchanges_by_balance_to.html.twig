@@ -1,8 +1,8 @@
 {# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
 {# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
-{% if (ea.crud.currentAction == 'index') or (field.value is empty) %}
-    <span>{{ field.value | length }} exchange(s)</span>
+{% if (field.value is empty) %}
+    <span>No exchanges</span>
 {% else %}
     <a href="{{ ea_url()
         .setController('App\\Controller\\Admin\\ExchangeCrudController')

@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Deposit;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
@@ -29,32 +30,26 @@ class DepositCrudController extends AbstractCrudController
             AssociationField::new('currency'),
 
             NumberField::new('amount')
-                ->setNumDecimals(2)
-        ,
+                ->setNumDecimals(2),
             NumberField::new('expected_profit')
                 ->setNumDecimals(2)
-                ->hideOnForm()
-                ->setLabel('Expected profit'),
+                ->hideOnForm(),
             NumberField::new('expected_total')
                 ->setNumDecimals(2)
-                ->hideOnForm()
-                ->setLabel('Expected total'),
+                ->hideOnForm(),
 
             FormField::addFieldset()
                 ->addCssClass('wide')
                 ->onlyOnDetail(),
-            NumberField::new('amount_in_usd')
+            NumberField::new('amount_in_usd', 'Amount in USD')
                 ->setNumDecimals(2)
-                ->onlyOnDetail()
-                ->setLabel('Amount in USD'),
-            NumberField::new('expected_profit_in_usd')
+                ->onlyOnDetail(),
+            NumberField::new('expected_profit_in_usd', 'Expected Profit in USD')
                 ->setNumDecimals(2)
-                ->onlyOnDetail()
-                ->setLabel('Expected profit in USD'),
-            NumberField::new('expected_total_in_usd')
+                ->onlyOnDetail(),
+            NumberField::new('expected_total_in_usd', 'Expected Total in USD')
                 ->setNumDecimals(2)
-                ->onlyOnDetail()
-                ->setLabel('Expected total in USD'),
+                ->onlyOnDetail(),
 
             FormField::addColumn(4),
             FormField::addFieldset(),
@@ -73,5 +68,11 @@ class DepositCrudController extends AbstractCrudController
             DateField::new('end_date')
                 ->setFormat('dd-MM-yyyy'),
         ];
+    }
+
+    public function configureFilters(Filters $filters): Filters
+    {
+        return $filters
+            ->add('currency');
     }
 }
