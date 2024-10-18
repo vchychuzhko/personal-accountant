@@ -29,7 +29,7 @@ class IncomeCrudController extends AbstractCrudController
             AssociationField::new('balance'),
             NumberField::new('amount')
                 ->setNumDecimals(2),
-            NumberField::new('amount_in_usd')
+            NumberField::new('amount_in_usd', 'Amount in USD')
                 ->setNumDecimals(2)
                 ->hideOnForm(),
             DateTimeField::new('created_at')

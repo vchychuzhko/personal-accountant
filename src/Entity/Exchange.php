@@ -69,6 +69,14 @@ class Exchange
         return $this->amount;
     }
 
+    public function getAmountInUsd(): ?float
+    {
+        $balance = $this->getBalanceFrom();
+        $currency = $balance->getCurrency();
+
+        return $this->getAmount() / $currency->getRate();
+    }
+
     public function setAmount(float $amount): static
     {
         $this->amount = $amount;
@@ -79,6 +87,14 @@ class Exchange
     public function getResult(): ?float
     {
         return $this->result;
+    }
+
+    public function getResultInUsd(): ?float
+    {
+        $balance = $this->getBalanceTo();
+        $currency = $balance->getCurrency();
+
+        return $this->getResult() / $currency->getRate();
     }
 
     public function setResult(float $result): static

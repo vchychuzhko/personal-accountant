@@ -20,11 +20,17 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\UX\Chartjs\Model\Chart;
 
 class DashboardController extends AbstractDashboardController
 {
     public function __construct(
         private readonly BalanceRepository $balanceRepository,
+        private readonly ChartBuilderInterface $chartBuilder,
+        private readonly CacheInterface $cache
     ) {
     }
 
@@ -40,6 +46,7 @@ class DashboardController extends AbstractDashboardController
 
         return $this->render('admin/index.html.twig', [
             'total' => number_format($total, 2, '.', ','),
+            'chart' => $this->getMainChart(),
         ]);
     }
 
@@ -86,5 +93,59 @@ class DashboardController extends AbstractDashboardController
     {
         return parent::configureAssets()
             ->addAssetMapperEntry('app');
+    }
+
+    private function getMainChart(): Chart
+    {
+        $balances = $this->balanceRepository->findAll();
+
+        $records = $this->cache->get('this_month', function (ItemInterface $item) use ($balances) {
+            $item->expiresAfter(86400);
+
+            $day = new \DateTime('first day of this month 00:00:00');
+            $today = new \DateTime();
+            $computedValue = [];
+
+            while ($day <= $today) {
+                $total = 0;
+
+                foreach ($balances as $balance) {
+                    $total += $balance->getAmountInUsdAtMoment($day);
+                }
+
+                $computedValue[$day->format('d/m')] = $total;
+                $day->modify('+1 day');
+            }
+
+            return $computedValue;
+        });
+
+        $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
+        $chart->setData([
+            'labels' => array_keys($records),
+            'datasets' => [
+                [
+                    'label' => 'This month',
+                    'data' => array_map(fn($record) => number_format($record, 2, '.', ''), array_values($records)),
+                ],
+            ],
+        ]);
+
+        $chart->setOptions([
+            'plugins' => [
+                'autocolors' => [
+                    'mode' => 'data',
+                ],
+                'title' => [
+                    'display' => true,
+                    'text' => 'Dynamic by month (in USD)',
+                ],
+                'legend' => [
+                    'display' => false,
+                ],
+            ],
+        ]);
+
+        return $chart;
     }
 }

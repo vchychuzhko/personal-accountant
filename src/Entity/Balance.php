@@ -98,6 +98,40 @@ class Balance
         return $this->getAmount() / $currency->getRate();
     }
 
+    public function getAmountInUsdAtMoment(\DateTime $dateTime): ?float
+    {
+        $amountInUsd = $this->getAmountInUsd();
+
+        $incomes = $this->getIncomes()->filter(function(Income $income) use ($dateTime) {
+            return $income->getCreatedAt() >= $dateTime;
+        });
+        foreach ($incomes as $income) {
+            $amountInUsd = $amountInUsd - $income->getAmountInUsd();
+        }
+
+        $payments = $this->getPayments()->filter(function(Payment $payment) use ($dateTime) {
+            return $payment->getCreatedAt() >= $dateTime;
+        });
+        foreach ($payments as $payment) {
+            $amountInUsd = $amountInUsd + $payment->getAmountInUsd();
+        }
+
+        $exchangesFrom = $this->getExchangesFrom()->filter(function(Exchange $exchange) use ($dateTime) {
+            return $exchange->getCreatedAt() >= $dateTime;
+        });
+        foreach ($exchangesFrom as $exchange) {
+            $amountInUsd = $amountInUsd + $exchange->getAmountInUsd();
+        }
+        $exchangesTo = $this->getExchangesTo()->filter(function(Exchange $exchange) use ($dateTime) {
+            return $exchange->getCreatedAt() >= $dateTime;
+        });
+        foreach ($exchangesTo as $exchange) {
+            $amountInUsd = $amountInUsd - $exchange->getResultInUsd();
+        }
+
+        return $amountInUsd;
+    }
+
     public function setAmount(float $amount): static
     {
         $this->amount = $amount;

@@ -3,5 +3,12 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block main %}
-<h2>Total: $ {{ total }}</h2>
+<div class="row">
+    <div class="col-8">
+        {{ render_chart(chart) }}
+    </div>
+    <div class="col-4">
+        <h2>Total: ${{ total }}</h2>
+    </div>
+</div>
 {% endblock %}

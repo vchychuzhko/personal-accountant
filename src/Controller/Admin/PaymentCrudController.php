@@ -57,7 +57,7 @@ class PaymentCrudController extends AbstractCrudController
             AssociationField::new('balance'),
             NumberField::new('amount')
                 ->setNumDecimals(2),
-            NumberField::new('amount_in_usd')
+            NumberField::new('amount_in_usd', 'Amount in USD')
                 ->setNumDecimals(2)
                 ->setSortable(true)
                 ->hideOnForm(),
