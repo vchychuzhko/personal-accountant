@@ -11,6 +11,8 @@ use App\Entity\Loan;
 use App\Entity\Tag;
 use App\Entity\Payment;
 use App\Repository\BalanceRepository;
+use App\Repository\LoanRepository;
+use App\Repository\PaymentRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
@@ -30,6 +32,8 @@ class DashboardController extends AbstractDashboardController
     public function __construct(
         private readonly BalanceRepository $balanceRepository,
         private readonly ChartBuilderInterface $chartBuilder,
+        private readonly LoanRepository $loanRepository,
+        private readonly PaymentRepository $paymentRepository,
         private readonly CacheInterface $cache
     ) {
     }
@@ -37,15 +41,10 @@ class DashboardController extends AbstractDashboardController
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
-        $balances = $this->balanceRepository->findAll();
-        $total = 0;
-
-        foreach ($balances as $balance) {
-            $total += $balance->getAmountInUsd();
-        }
-
         return $this->render('admin/index.html.twig', [
-            'total' => number_format($total, 2, '.', ','),
+            'total' => number_format($this->getGrandTotal(), 2, '.', ','),
+            'total_in_loans' => number_format($this->getTotalInLoans(), 2, '.', ','),
+            'expenses_this_month' => number_format($this->getExpensesThisMonth(), 2, '.', ','),
             'chart' => $this->getMainChart(),
         ]);
     }
@@ -93,6 +92,43 @@ class DashboardController extends AbstractDashboardController
     {
         return parent::configureAssets()
             ->addAssetMapperEntry('app');
+    }
+
+    private function getGrandTotal(): float
+    {
+        $balances = $this->balanceRepository->findAll();
+        $total = 0;
+
+        foreach ($balances as $balance) {
+            $total += $balance->getAmountInUsd();
+        }
+
+        return $total;
+    }
+
+    private function getTotalInLoans(): float
+    {
+        $loans = $this->loanRepository->findAll();
+        $totalInLoans = 0;
+
+        foreach ($loans as $loan) {
+            $totalInLoans += $loan->getAmountInUsd();
+        }
+
+        return $totalInLoans;
+    }
+
+    private function getExpensesThisMonth(): float
+    {
+        $day = new \DateTime('first day of this month 00:00:00');
+        $payments = $this->paymentRepository->findAfterDate($day);
+        $expensesThisMonth = 0;
+
+        foreach ($payments as $payment) {
+            $expensesThisMonth += $payment->getAmountInUsd();
+        }
+
+        return $expensesThisMonth;
     }
 
     private function getMainChart(): Chart
