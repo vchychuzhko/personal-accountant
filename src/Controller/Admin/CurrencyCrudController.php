@@ -25,6 +25,7 @@ class CurrencyCrudController extends AbstractCrudController
             IdField::new('id')
                 ->onlyOnIndex(),
             TextField::new('name'),
+            TextField::new('code'),
             NumberField::new('rate'),
 
             FormField::addFieldset()

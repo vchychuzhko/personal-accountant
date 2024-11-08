@@ -56,7 +56,7 @@ class Tag
 
     public function getPaymentsCount(): int
     {
-        return count($this->payments);
+        return $this->payments->count();
     }
 
     public function addPayment(Payment $payment): static

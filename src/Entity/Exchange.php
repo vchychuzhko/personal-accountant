@@ -106,7 +106,7 @@ class Exchange
 
     public function getRate(): float
     {
-        return $this->getResult() / $this->getAmount();
+        return $this->getAmount() / $this->getResult();
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable

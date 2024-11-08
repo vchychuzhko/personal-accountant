@@ -41,10 +41,15 @@ class DashboardController extends AbstractDashboardController
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
+        $incomesThisMonth = $this->getIncomesThisMonth();
+        $expensesThisMonth = $this->getExpensesThisMonth();
+
         return $this->render('admin/index.html.twig', [
             'total' => number_format($this->getGrandTotal(), 2, '.', ','),
             'total_in_loans' => number_format($this->getTotalInLoans(), 2, '.', ','),
-            'expenses_this_month' => number_format($this->getExpensesThisMonth(), 2, '.', ','),
+            'incomes_this_month' => number_format($incomesThisMonth, 2, '.', ','),
+            'expenses_this_month' => number_format($expensesThisMonth, 2, '.', ','),
+            'diff_this_month' => number_format($incomesThisMonth - $expensesThisMonth, 2, '.', ','),
             'chart' => $this->getMainChart(),
         ]);
     }
@@ -116,6 +121,19 @@ class DashboardController extends AbstractDashboardController
         }
 
         return $totalInLoans;
+    }
+
+    private function getIncomesThisMonth(): float
+    {
+        $day = new \DateTime('first day of this month 00:00:00');
+        $incomes = $this->incomeRepository->findAfterDate($day);
+        $incomesThisMonth = 0;
+
+        foreach ($incomes as $income) {
+            $incomesThisMonth += $income->getAmountInUsd();
+        }
+
+        return $incomesThisMonth;
     }
 
     private function getExpensesThisMonth(): float

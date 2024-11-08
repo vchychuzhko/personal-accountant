@@ -9,8 +9,12 @@
     </div>
     <div class="col-4">
         <h2>Total: ${{ total }}</h2>
-        <h3>Expenses this month: ${{ expenses_this_month }}</h3>
-        <h4 class="text-secondary">Total in loans: ${{ total_in_loans }}</h4>
+        <hr>
+        <p>Incomes this month: ${{ incomes_this_month }}</p>
+        <p>Expenses this month: ${{ expenses_this_month }}</p>
+        <p>Diff this month: <strong>${{ diff_this_month }}</strong></p>
+        <hr>
+        <p class="text-secondary">Total in loans: ${{ total_in_loans }}</p>
     </div>
 </div>
 {% endblock %}
