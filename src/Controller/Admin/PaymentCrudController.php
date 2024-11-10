@@ -31,20 +31,20 @@ class PaymentCrudController extends AbstractCrudController
         FieldCollection $fields,
         FilterCollection $filters
     ): QueryBuilder {
-        $iqb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
         $sortFields = $searchDto->getSort();
 
         if (isset($sortFields['amount_in_usd'])) {
             $sortDirection = $sortFields['amount_in_usd'];
 
-            $iqb->leftJoin('entity.balance', 'balance')
+            $qb->leftJoin('entity.balance', 'balance')
                 ->leftJoin('balance.currency', 'currency')
                 ->addSelect('(entity.amount / currency.rate) AS HIDDEN amount_in_usd')
                 ->orderBy('amount_in_usd', $sortDirection);
         }
 
-        return $iqb;
+        return $qb;
     }
 
     public function configureFields(string $pageName): iterable

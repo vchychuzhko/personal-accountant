@@ -1,0 +1,16 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
+{# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
+{% if (field.value is empty) %}
+    <span>No deposits</span>
+{% else %}
+    <a href="{{ ea_url()
+        .setController('App\\Controller\\Admin\\DepositCrudController')
+        .setAction('index')
+        .set('filters[balance][value]', entity.primaryKeyValue)
+        .set('filters[balance][comparison]', '=')
+        .unset('entityId')
+    }}">
+        {{ field.value | length }} deposit(s)
+    </a>
+{% endif %}

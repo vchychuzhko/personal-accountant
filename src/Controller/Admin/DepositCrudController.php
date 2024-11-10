@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Deposit;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -27,29 +28,25 @@ class DepositCrudController extends AbstractCrudController
             IdField::new('id')
                 ->onlyOnIndex(),
             TextField::new('name'),
-            AssociationField::new('currency'),
+            AssociationField::new('balance'),
+            TextField::new('balance.currency', 'Currency')
+                ->hideOnForm(),
 
             NumberField::new('amount')
                 ->setNumDecimals(2),
             NumberField::new('expected_profit')
                 ->setNumDecimals(2)
-                ->hideOnForm(),
-            NumberField::new('expected_total')
-                ->setNumDecimals(2)
-                ->hideOnForm(),
+                ->onlyOnDetail(),
 
             FormField::addFieldset()
                 ->addCssClass('wide')
                 ->onlyOnDetail(),
             NumberField::new('amount_in_usd', 'Amount in USD')
                 ->setNumDecimals(2)
-                ->onlyOnDetail(),
+                ->hideOnForm(),
             NumberField::new('expected_profit_in_usd', 'Expected Profit in USD')
                 ->setNumDecimals(2)
-                ->onlyOnDetail(),
-            NumberField::new('expected_total_in_usd', 'Expected Total in USD')
-                ->setNumDecimals(2)
-                ->onlyOnDetail(),
+                ->hideOnForm(),
 
             FormField::addColumn(4),
             FormField::addFieldset(),
@@ -73,6 +70,12 @@ class DepositCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
-            ->add('currency');
+            ->add('balance');
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setDefaultSort(['id' => 'DESC']);
     }
 }

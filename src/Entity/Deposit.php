@@ -19,7 +19,7 @@ class Deposit
 
     #[ORM\ManyToOne(inversedBy: 'deposits')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Currency $currency = null;
+    private ?Balance $balance = null;
 
     #[ORM\Column]
     private ?float $amount = null;
@@ -53,14 +53,14 @@ class Deposit
         return $this;
     }
 
-    public function getCurrency(): ?Currency
+    public function getBalance(): ?Balance
     {
-        return $this->currency;
+        return $this->balance;
     }
 
-    public function setCurrency(?Currency $currency): static
+    public function setBalance(?Balance $balance): static
     {
-        $this->currency = $currency;
+        $this->balance = $balance;
 
         return $this;
     }
@@ -79,7 +79,8 @@ class Deposit
 
     public function getAmountInUsd(): ?float
     {
-        $currency = $this->getCurrency();
+        $balance = $this->getBalance();
+        $currency = $balance->getCurrency();
 
         return $this->getAmount() / $currency->getRate();
     }
@@ -94,21 +95,10 @@ class Deposit
 
     public function getExpectedProfitInUsd(): ?float
     {
-        $currency = $this->getCurrency();
+        $balance = $this->getBalance();
+        $currency = $balance->getCurrency();
 
         return $this->getExpectedProfit() / $currency->getRate();
-    }
-
-    public function getExpectedTotal(): ?float
-    {
-        return $this->getAmount() + $this->getExpectedProfit();
-    }
-
-    public function getExpectedTotalInUsd(): ?float
-    {
-        $currency = $this->getCurrency();
-
-        return $this->getExpectedTotal() / $currency->getRate();
     }
 
     public function getInterest(): ?float
@@ -161,6 +151,9 @@ class Deposit
 
     public function __toString(): string
     {
-        return $this->getName() . ' (' . $this->getCurrency() . ')';
+        $balance = $this->getBalance();
+        $currency = $balance->getCurrency();
+
+        return $this->getName() . ' (' . $currency . ')';
     }
 }

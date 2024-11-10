@@ -26,20 +26,20 @@ class TagCrudController extends AbstractCrudController
         FieldCollection $fields,
         FilterCollection $filters
     ): QueryBuilder {
-        $iqb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
         $sortFields = $searchDto->getSort();
 
         if (isset($sortFields['payments_count'])) {
             $sortDirection = $sortFields['payments_count'];
 
-            $iqb->leftJoin('entity.payments', 'payment')
+            $qb->leftJoin('entity.payments', 'payment')
                 ->addSelect('COUNT(payment.id) AS HIDDEN payments_count')
                 ->groupBy('entity.id')
                 ->orderBy('payments_count', $sortDirection);
         }
 
-        return $iqb;
+        return $qb;
     }
 
     public function configureFields(string $pageName): iterable

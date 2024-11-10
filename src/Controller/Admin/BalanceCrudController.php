@@ -30,19 +30,19 @@ class BalanceCrudController extends AbstractCrudController
         FieldCollection $fields,
         FilterCollection $filters
     ): QueryBuilder {
-        $iqb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
         $sortFields = $searchDto->getSort();
 
         if (isset($sortFields['amount_in_usd'])) {
             $sortDirection = $sortFields['amount_in_usd'];
 
-            $iqb->leftJoin('entity.currency', 'currency')
+            $qb->leftJoin('entity.currency', 'currency')
                 ->addSelect('(entity.amount / currency.rate) AS HIDDEN amount_in_usd')
                 ->orderBy('amount_in_usd', $sortDirection);
         }
 
-        return $iqb;
+        return $qb;
     }
 
     public function configureFields(string $pageName): iterable
@@ -68,6 +68,9 @@ class BalanceCrudController extends AbstractCrudController
                 ->onlyOnDetail(),
             CollectionField::new('payments')
                 ->setTemplatePath('admin/fields/payments_by_balance.html.twig')
+                ->onlyOnDetail(),
+            CollectionField::new('deposits')
+                ->setTemplatePath('admin/fields/deposits_by_balance.html.twig')
                 ->onlyOnDetail(),
             CollectionField::new('exchanges_from')
                 ->setTemplatePath('admin/fields/exchanges_by_balance_from.html.twig')

@@ -31,12 +31,6 @@ class Currency
     private Collection $balances;
 
     /**
-     * @var Collection<int, Deposit>
-     */
-    #[ORM\OneToMany(targetEntity: Deposit::class, mappedBy: 'currency')]
-    private Collection $deposits;
-
-    /**
      * @var Collection<int, Loan>
      */
     #[ORM\OneToMany(targetEntity: Loan::class, mappedBy: 'currency')]
@@ -45,7 +39,6 @@ class Currency
     public function __construct()
     {
         $this->balances = new ArrayCollection();
-        $this->deposits = new ArrayCollection();
         $this->loans = new ArrayCollection();
     }
 
@@ -125,29 +118,15 @@ class Currency
      */
     public function getDeposits(): Collection
     {
-        return $this->deposits;
-    }
+        $deposits = new ArrayCollection();
 
-    public function addDeposit(Deposit $deposit): static
-    {
-        if (!$this->deposits->contains($deposit)) {
-            $this->deposits->add($deposit);
-            $deposit->setCurrency($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDeposit(Deposit $deposit): static
-    {
-        if ($this->deposits->removeElement($deposit)) {
-            // set the owning side to null (unless already changed)
-            if ($deposit->getCurrency() === $this) {
-                $deposit->setCurrency(null);
+        foreach ($this->getBalances() as $balance) {
+            foreach ($balance->getDeposits() as $deposit) {
+                $deposits->add($deposit);
             }
         }
 
-        return $this;
+        return $deposits;
     }
 
     /**
