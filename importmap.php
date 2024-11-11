@@ -23,7 +23,7 @@ return [
         'path' => './vendor/symfony/stimulus-bundle/assets/dist/loader.js',
     ],
     'chart.js' => [
-        'version' => '3.9.1',
+        'version' => '4.4.1',
     ],
     'chartjs-plugin-autocolors' => [
         'version' => '0.3.1',

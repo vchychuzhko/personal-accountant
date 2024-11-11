@@ -46,10 +46,12 @@ class DashboardController extends AbstractDashboardController
 
         return $this->render('admin/index.html.twig', [
             'total' => number_format($this->getGrandTotal(), 2, '.', ','),
-            'total_in_loans' => number_format($this->getTotalInLoans(), 2, '.', ','),
             'incomes_this_month' => number_format($incomesThisMonth, 2, '.', ','),
             'expenses_this_month' => number_format($expensesThisMonth, 2, '.', ','),
             'diff_this_month' => number_format($incomesThisMonth - $expensesThisMonth, 2, '.', ','),
+            'total_in_deposits' => number_format($this->getTotalInDeposits(), 2, '.', ','),
+            'expected_deposit_profit' => number_format($this->getExpectedDepositsProfit(), 2, '.', ','),
+            'total_in_loans' => number_format($this->getTotalInLoans(), 2, '.', ','),
             'chart' => $this->getMainChart(),
         ]);
     }
@@ -121,6 +123,30 @@ class DashboardController extends AbstractDashboardController
         }
 
         return $totalInLoans;
+    }
+
+    private function getTotalInDeposits(): float
+    {
+        $deposits = $this->depositRepository->findAll();
+        $totalInDeposits = 0;
+
+        foreach ($deposits as $deposit) {
+            $totalInDeposits += $deposit->getAmountInUsd();
+        }
+
+        return $totalInDeposits;
+    }
+
+    private function getExpectedDepositsProfit(): float
+    {
+        $deposits = $this->depositRepository->findAll();
+        $totalDepositProfit = 0;
+
+        foreach ($deposits as $deposit) {
+            $totalDepositProfit += $deposit->getExpectedProfitInUsd();
+        }
+
+        return $totalDepositProfit;
     }
 
     private function getIncomesThisMonth(): float
