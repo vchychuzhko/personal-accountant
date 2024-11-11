@@ -2,7 +2,7 @@
 {# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
 {% if (field.value is empty) %}
-    <span>No balances</span>
+    <span>-</span>
 {% elseif (ea.crud.currentAction == 'index') %}
     <a href="{{ ea_url()
         .setController('App\\Controller\\Admin\\BalanceCrudController')
@@ -14,7 +14,7 @@
         {{ field.value | length }} balance(s)
     </a>
 {% else %}
-    <ul style="padding-left: 15px; margin-bottom: 0;">
+    <ul class="pl-4 mb-0">
         {% for balance in field.value %}
             <li>
                 <a href="{{ path('admin', {

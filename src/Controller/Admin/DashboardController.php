@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Balance;
+use App\Entity\Configuration;
 use App\Entity\Currency;
 use App\Entity\Deposit;
 use App\Entity\Exchange;
@@ -78,6 +79,8 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Loan', 'fas fa-sack-dollar', Loan::class);
         yield MenuItem::linkToCrud('Tag', 'fas fa-tag', Tag::class);
         yield MenuItem::linkToCrud('Currency', 'fas fa-dollar', Currency::class);
+        yield MenuItem::section();
+        yield MenuItem::linkToCrud('Configuration', 'fas fa-gear', Configuration::class);
     }
 
     public function configureActions(): Actions

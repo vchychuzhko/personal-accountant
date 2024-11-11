@@ -23,7 +23,8 @@ class DepositCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            FormField::addColumn(8),
+            FormField::addColumn(8)
+                ->addCssClass('w-40'),
             FormField::addFieldset(),
             IdField::new('id')
                 ->onlyOnIndex(),
@@ -39,7 +40,6 @@ class DepositCrudController extends AbstractCrudController
                 ->onlyOnDetail(),
 
             FormField::addFieldset()
-                ->addCssClass('wide')
                 ->onlyOnDetail(),
             NumberField::new('amount_in_usd', 'Amount in USD')
                 ->setNumDecimals(2)

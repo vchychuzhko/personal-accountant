@@ -2,7 +2,7 @@
 {# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
 {% if (field.value == 0) %}
-    <span>No payments</span>
+    <span>-</span>
 {% else %}
     <a href="{{ ea_url()
         .setController('App\\Controller\\Admin\\PaymentCrudController')

@@ -1,3 +1,7 @@
-.wide .field-group .field-label {
-    width: 150px;
+.w-40 .field-group .field-label {
+    width: 160px;
+}
+
+.pl-4 {
+    padding-left: 16px;
 }
