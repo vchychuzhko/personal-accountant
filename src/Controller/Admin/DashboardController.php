@@ -23,19 +23,21 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
 class DashboardController extends AbstractDashboardController
 {
+    public const DASHBOARD_CACHE_TAG = 'dashboard';
+
     public function __construct(
         private readonly BalanceRepository $balanceRepository,
         private readonly ChartBuilderInterface $chartBuilder,
         private readonly LoanRepository $loanRepository,
         private readonly PaymentRepository $paymentRepository,
-        private readonly CacheInterface $cache
+        private readonly TagAwareCacheInterface $cache
     ) {
     }
 
@@ -184,6 +186,7 @@ class DashboardController extends AbstractDashboardController
 
         $records = $this->cache->get('this_month', function (ItemInterface $item) use ($balances) {
             $item->expiresAfter(86400);
+            $item->tag(self::DASHBOARD_CACHE_TAG);
 
             $day = new \DateTime('first day of this month 00:00:00');
             $today = new \DateTime();
