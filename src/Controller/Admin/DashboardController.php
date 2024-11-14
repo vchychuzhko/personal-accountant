@@ -55,7 +55,18 @@ class DashboardController extends AbstractDashboardController
             'total_in_deposits' => number_format($this->getTotalInDeposits(), 2, '.', ','),
             'expected_deposit_profit' => number_format($this->getExpectedDepositsProfit(), 2, '.', ','),
             'total_in_loans' => number_format($this->getTotalInLoans(), 2, '.', ','),
-            'chart' => $this->getMainChart(),
+            'main_charts' => [
+                [
+                    'id' => 'this_month',
+                    'title' => 'This Month',
+                    'chart'=> $this->getTotalsChart('first day of this month', 'day'),
+                ],
+                [
+                    'id' => 'last_6_months',
+                    'title' => 'Last 6 Months',
+                    'chart'=> $this->getTotalsChart('first day of 6 months ago', 'week'),
+                ],
+            ],
         ]);
     }
 
@@ -180,15 +191,15 @@ class DashboardController extends AbstractDashboardController
         return $expensesThisMonth;
     }
 
-    private function getMainChart(): Chart
+    private function getTotalsChart(string $startDay, string $step): Chart
     {
-        $balances = $this->balanceRepository->findAll();
-
-        $records = $this->cache->get('this_month', function (ItemInterface $item) use ($balances) {
+        $records = $this->cache->get("$startDay +1 $step", function (ItemInterface $item) use ($startDay, $step) {
             $item->expiresAfter(86400);
             $item->tag(self::DASHBOARD_CACHE_TAG);
 
-            $day = new \DateTime('first day of this month 00:00:00');
+            $balances = $this->balanceRepository->findAll();
+
+            $day = new \DateTime("$startDay 00:00:00");
             $today = new \DateTime();
             $computedValue = [];
 
@@ -200,7 +211,7 @@ class DashboardController extends AbstractDashboardController
                 }
 
                 $computedValue[$day->format('d/m')] = $total;
-                $day->modify('+1 day');
+                $day->modify("+1 $step");
             }
 
             return $computedValue;
@@ -211,7 +222,7 @@ class DashboardController extends AbstractDashboardController
             'labels' => array_keys($records),
             'datasets' => [
                 [
-                    'label' => 'This month',
+                    'label' => 'Total',
                     'data' => array_map(fn($record) => number_format($record, 2, '.', ''), array_values($records)),
                 ],
             ],
@@ -219,13 +230,6 @@ class DashboardController extends AbstractDashboardController
 
         $chart->setOptions([
             'plugins' => [
-                'autocolors' => [
-                    'mode' => 'data',
-                ],
-                'title' => [
-                    'display' => true,
-                    'text' => 'Dynamic by month (in USD)',
-                ],
                 'legend' => [
                     'display' => false,
                 ],
