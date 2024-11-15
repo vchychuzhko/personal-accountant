@@ -50,7 +50,8 @@ class ConfigurationCrudController extends AbstractCrudController
     ): RedirectResponse {
         $cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
-        $session->getFlashBag()->add('success', '"' . DashboardController::DASHBOARD_CACHE_TAG . '" cache is successfully cleared.');
+        $session->getFlashBag()
+            ->add('success', '"' . DashboardController::DASHBOARD_CACHE_TAG . '" cache is successfully cleared.');
 
         $targetUrl = $adminUrlGenerator
             ->setController(self::class)

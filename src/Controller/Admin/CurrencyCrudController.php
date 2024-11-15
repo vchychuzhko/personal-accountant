@@ -109,7 +109,8 @@ class CurrencyCrudController extends AbstractCrudController
 
         $entityManager->flush();
 
-        $session->getFlashBag()->add('success', 'Rates are successfully updated.');
+        $session->getFlashBag()
+            ->add('success', 'Rates are successfully updated.');
 
         $targetUrl = $adminUrlGenerator
             ->setController(self::class)

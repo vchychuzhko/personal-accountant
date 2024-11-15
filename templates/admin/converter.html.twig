@@ -1,0 +1,26 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}Currency Converter{% endblock %}
+
+{% block main %}
+<form {{ stimulus_controller('converter') }}>
+    <div class="row">
+        {% for currency in currencies %}
+            <div class="col-md-4 col-xxl-3">
+                <div class="field-number form-group">
+                    <label for="{{ currency.code | lower }}" class="form-control-label">{{ currency.name }}</label>
+                    <div class="form-widget">
+                        <input type="number" id="{{ currency.code | lower }}" name="{{ currency.code | lower }}"
+                               value="{{ currency.rate | number_format(2) }}" data-rate="{{ currency.rate }}"
+                               inputmode="decimal" class="form-control"
+                               {{ stimulus_target('converter', 'input') }}
+                               {{ stimulus_action('converter', 'update', 'input') }}
+                        >
+                    </div>
+                </div>
+            </div>
+            <div class="flex-fill"></div>
+        {% endfor %}
+    </div>
+</form>
+{% endblock %}

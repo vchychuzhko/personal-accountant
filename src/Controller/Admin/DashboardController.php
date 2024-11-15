@@ -94,6 +94,9 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Currency', 'fas fa-dollar', Currency::class);
         yield MenuItem::section();
         yield MenuItem::linkToCrud('Configuration', 'fas fa-gear', Configuration::class);
+        yield MenuItem::section('Apps');
+        yield MenuItem::linkToRoute('Deposit Calculator', 'fas fa-calculator', 'app_admin_calculator');
+        yield MenuItem::linkToRoute('Currency Converter', 'fas fa-rotate', 'app_admin_converter');
     }
 
     public function configureActions(): Actions
