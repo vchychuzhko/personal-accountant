@@ -24,6 +24,9 @@ class Currency
     #[ORM\Column]
     private ?float $rate = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $format = null;
+
     /**
      * @var Collection<int, Balance>
      */
@@ -79,6 +82,18 @@ class Currency
     public function setRate(float $rate): static
     {
         $this->rate = $rate;
+
+        return $this;
+    }
+
+    public function getFormat(): ?string
+    {
+        return $this->format;
+    }
+
+    public function setFormat(string $format): static
+    {
+        $this->format = $format;
 
         return $this;
     }

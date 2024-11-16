@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Income;
+use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
@@ -28,9 +29,15 @@ class IncomeCrudController extends AbstractCrudController
             TextField::new('name'),
             AssociationField::new('balance'),
             NumberField::new('amount')
-                ->setNumDecimals(2),
+                ->formatValue(function ($value, Income $entity) {
+                    $currency = $entity->getBalance()->getCurrency();
+
+                    return PriceUtils::format($value, $currency->getFormat());
+                }),
             NumberField::new('amount_in_usd', 'Amount in USD')
-                ->setNumDecimals(2)
+                ->formatValue(function ($value) {
+                    return PriceUtils::format($value);
+                })
                 ->hideOnForm(),
             DateTimeField::new('created_at')
                 ->setFormat('dd-MM-yyyy HH:mm'),

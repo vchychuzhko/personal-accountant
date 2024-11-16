@@ -27,16 +27,16 @@
         </div>
     </div>
     <div class="col-4">
-        <h2>Total: ${{ total }}</h2>
+        <h2>Total: {{ total }}</h2>
         <hr>
-        <p>Incomes this month: ${{ incomes_this_month }}</p>
-        <p>Expenses this month: ${{ expenses_this_month }}</p>
-        <p>Diff this month: <strong>${{ diff_this_month }}</strong></p>
+        <p>Incomes this month: {{ incomes_this_month }}</p>
+        <p>Expenses this month: {{ expenses_this_month }}</p>
+        <p>Diff this month: <strong>{{ diff_this_month }}</strong></p>
         <hr>
-        <p class="text-secondary">Total in deposits: ${{ total_in_deposits }}</p>
-        <p>Expected deposit profit: ${{ expected_deposit_profit }}</p>
+        <p class="text-secondary">Total in deposits: {{ total_in_deposits }}</p>
+        <p>Expected deposit profit: {{ expected_deposit_profit }}</p>
         <hr>
-        <p class="text-secondary">Total in loans: ${{ total_in_loans }}</p>
+        <p class="text-secondary">Total in loans: {{ total_in_loans }}</p>
     </div>
 </div>
 {% endblock %}

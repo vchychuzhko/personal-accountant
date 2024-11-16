@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Loan;
+use App\Utils\PriceUtils;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
@@ -52,9 +53,15 @@ class LoanCrudController extends AbstractCrudController
             TextField::new('person'),
             AssociationField::new('currency'),
             NumberField::new('amount')
-                ->setNumDecimals(2),
+                ->formatValue(function ($value, Loan $entity) {
+                    $currency = $entity->getCurrency();
+
+                    return PriceUtils::format($value, $currency->getFormat());
+                }),
             NumberField::new('amount_in_usd', 'Amount in USD')
-                ->setNumDecimals(2)
+                ->formatValue(function ($value) {
+                    return PriceUtils::format($value);
+                })
                 ->setSortable(true)
                 ->hideOnForm(),
             DateField::new('created_at')

@@ -18,7 +18,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class CurrencyCrudController extends AbstractCrudController
@@ -41,6 +40,8 @@ class CurrencyCrudController extends AbstractCrudController
             TextField::new('code'),
             NumberField::new('rate')
                 ->setNumDecimals(2),
+            TextField::new('format')
+                ->hideOnIndex(),
 
             FormField::addFieldset()
                 ->onlyOnDetail(),
@@ -72,7 +73,6 @@ class CurrencyCrudController extends AbstractCrudController
     public function updateRates(
         EntityManagerInterface $entityManager,
         HttpClientInterface $client,
-        SessionInterface $session,
         AdminUrlGenerator $adminUrlGenerator
     ): RedirectResponse {
         /** @var ConfigurationRepository $configRepository */
@@ -109,8 +109,7 @@ class CurrencyCrudController extends AbstractCrudController
 
         $entityManager->flush();
 
-        $session->getFlashBag()
-            ->add('success', 'Rates are successfully updated.');
+        $this->addFlash('success', 'Rates are successfully updated');
 
         $targetUrl = $adminUrlGenerator
             ->setController(self::class)

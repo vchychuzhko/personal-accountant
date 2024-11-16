@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Exchange;
+use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
@@ -27,10 +28,19 @@ class ExchangeCrudController extends AbstractCrudController
             AssociationField::new('balance_from'),
             AssociationField::new('balance_to'),
             NumberField::new('amount')
-                ->setNumDecimals(2),
+                ->formatValue(function ($value, Exchange $entity) {
+                    $currency = $entity->getBalanceFrom()->getCurrency();
+
+                    return PriceUtils::format($value, $currency->getFormat());
+                }),
             NumberField::new('result')
-                ->setNumDecimals(2),
+                ->formatValue(function ($value, Exchange $entity) {
+                    $currency = $entity->getBalanceTo()->getCurrency();
+
+                    return PriceUtils::format($value, $currency->getFormat());
+                }),
             NumberField::new('rate')
+                ->setNumDecimals(2)
                 ->hideOnForm(),
             DateTimeField::new('created_at')
                 ->setFormat('dd-MM-yyyy HH:mm'),

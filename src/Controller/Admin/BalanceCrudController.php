@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Balance;
+use App\Utils\PriceUtils;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
@@ -55,9 +56,15 @@ class BalanceCrudController extends AbstractCrudController
             TextField::new('name'),
             AssociationField::new('currency'),
             NumberField::new('amount')
-                ->setNumDecimals(2),
+                ->formatValue(function ($value, Balance $entity) {
+                    $currency = $entity->getCurrency();
+
+                    return PriceUtils::format($value, $currency->getFormat());
+                }),
             NumberField::new('amount_in_usd', 'Amount in USD')
-                ->setNumDecimals(2)
+                ->formatValue(function ($value) {
+                    return PriceUtils::format($value);
+                })
                 ->setSortable(true)
                 ->hideOnForm(),
 

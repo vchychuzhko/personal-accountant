@@ -14,6 +14,7 @@ use App\Entity\Payment;
 use App\Repository\BalanceRepository;
 use App\Repository\LoanRepository;
 use App\Repository\PaymentRepository;
+use App\Utils\PriceUtils;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
@@ -48,13 +49,13 @@ class DashboardController extends AbstractDashboardController
         $expensesThisMonth = $this->getExpensesThisMonth();
 
         return $this->render('admin/index.html.twig', [
-            'total' => number_format($this->getGrandTotal(), 2, '.', ','),
-            'incomes_this_month' => number_format($incomesThisMonth, 2, '.', ','),
-            'expenses_this_month' => number_format($expensesThisMonth, 2, '.', ','),
-            'diff_this_month' => number_format($incomesThisMonth - $expensesThisMonth, 2, '.', ','),
-            'total_in_deposits' => number_format($this->getTotalInDeposits(), 2, '.', ','),
-            'expected_deposit_profit' => number_format($this->getExpectedDepositsProfit(), 2, '.', ','),
-            'total_in_loans' => number_format($this->getTotalInLoans(), 2, '.', ','),
+            'total' => PriceUtils::format($this->getGrandTotal()),
+            'incomes_this_month' => PriceUtils::format($incomesThisMonth),
+            'expenses_this_month' => PriceUtils::format($expensesThisMonth),
+            'diff_this_month' => PriceUtils::format($incomesThisMonth - $expensesThisMonth),
+            'total_in_deposits' => PriceUtils::format($this->getTotalInDeposits()),
+            'expected_deposit_profit' => PriceUtils::format($this->getExpectedDepositsProfit()),
+            'total_in_loans' => PriceUtils::format($this->getTotalInLoans()),
             'main_charts' => [
                 [
                     'id' => 'this_month',

@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Payment;
+use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
@@ -56,9 +57,15 @@ class PaymentCrudController extends AbstractCrudController
             AssociationField::new('tag'),
             AssociationField::new('balance'),
             NumberField::new('amount')
-                ->setNumDecimals(2),
+                ->formatValue(function ($value, Payment $entity) {
+                    $currency = $entity->getBalance()->getCurrency();
+
+                    return PriceUtils::format($value, $currency->getFormat());
+                }),
             NumberField::new('amount_in_usd', 'Amount in USD')
-                ->setNumDecimals(2)
+                ->formatValue(function ($value) {
+                    return PriceUtils::format($value);
+                })
                 ->setSortable(true)
                 ->hideOnForm(),
             DateTimeField::new('created_at')
