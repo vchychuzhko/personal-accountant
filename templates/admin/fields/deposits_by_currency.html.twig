@@ -6,7 +6,7 @@
 {% elseif (ea.crud.currentAction == 'index') %}
     <span>{{ field.value | length }} deposit(s)</span>
 {% else %}
-    <ul class="pl-4 mb-0">
+    <ul class="ps-3 mb-0">
         {% for deposit in field.value %}
             <li>
                 <a href="{{ path('admin', {

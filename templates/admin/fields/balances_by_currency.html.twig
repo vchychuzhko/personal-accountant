@@ -14,7 +14,7 @@
         {{ field.value | length }} balance(s)
     </a>
 {% else %}
-    <ul class="pl-4 mb-0">
+    <ul class="ps-3 mb-0">
         {% for balance in field.value %}
             <li>
                 <a href="{{ path('admin', {

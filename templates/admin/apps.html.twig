@@ -1,0 +1,90 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}Apps{% endblock %}
+
+{% block main %}
+<div class="row">
+    <div class="col-md-6">
+        <h4>Deposit Calculator</h4>
+        <form {{ stimulus_controller('calculator') }}>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="field-number form-group">
+                        <label for="amount" class="form-control-label">Amount</label>
+                        <div class="form-widget">
+                            <input type="number" id="amount" name="amount" value="0" step="1000"
+                                   inputmode="decimal" class="form-control"
+                                   {{ stimulus_action('calculator', 'update', 'input') }}
+                            >
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-fill"></div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="field-number form-group">
+                                <label for="interest" class="form-control-label">Interest</label>
+                                <div class="form-widget">
+                                    <input type="number" id="interest" name="interest" value="0" step="0.5"
+                                           inputmode="decimal" class="form-control"
+                                           {{ stimulus_action('calculator', 'update', 'input') }}
+                                    >
+                                    <small class="form-text form-help">Annual, in %</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="field-number form-group">
+                                <label for="period" class="form-control-label">Period</label>
+                                <div class="form-widget">
+                                    <input type="number" id="period" name="period" value="12"
+                                           inputmode="decimal" class="form-control"
+                                           {{ stimulus_action('calculator', 'update', 'input') }}
+                                    >
+                                    <small class="form-text form-help">Number of months</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-fill"></div>
+                <div class="col-md-6">
+                    <div class="field-number form-group">
+                        <label for="result" class="form-control-label">Result</label>
+                        <div class="form-widget">
+                            <input type="number" id="result" name="result" value="0.00"
+                                   inputmode="decimal" class="form-control" disabled
+                                   {{ stimulus_target('calculator', 'result') }}
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-6">
+        <h4>Currency Converter</h4>
+        <form {{ stimulus_controller('converter') }}>
+            <div class="row">
+                {% for currency in currencies %}
+                    <div class="col-md-6">
+                        <div class="field-number form-group">
+                            <label for="{{ currency.code | lower }}" class="form-control-label">{{ currency.name }}</label>
+                            <div class="form-widget">
+                                <input type="number" id="{{ currency.code | lower }}" name="{{ currency.code | lower }}"
+                                       value="{{ currency.rate | number_format(2) }}" data-rate="{{ currency.rate }}"
+                                       inputmode="decimal" class="form-control"
+                                       {{ stimulus_target('converter', 'input') }}
+                                       {{ stimulus_action('converter', 'update', 'input') }}
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-fill"></div>
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

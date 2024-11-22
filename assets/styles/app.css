@@ -1,7 +1,3 @@
-.w-40 .field-group .field-label {
+.form-column--wide .field-group .field-label {
     width: 160px;
-}
-
-.pl-4 {
-    padding-left: 16px;
 }

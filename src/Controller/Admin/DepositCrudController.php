@@ -52,7 +52,7 @@ class DepositCrudController extends AbstractCrudController
     {
         return [
             FormField::addColumn(8)
-                ->addCssClass('w-40'),
+                ->addCssClass('form-column--wide'),
             FormField::addFieldset(),
             IdField::new('id')
                 ->onlyOnIndex(),
