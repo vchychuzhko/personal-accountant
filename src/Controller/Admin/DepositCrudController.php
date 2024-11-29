@@ -23,6 +23,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\PercentField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -116,16 +117,14 @@ class DepositCrudController extends AbstractCrudController
                 ->setChoices(array_flip(Deposit::STATUS_MAP))
                 ->setTemplatePath('admin/fields/status.html.twig')
                 ->setRequired(true),
-            NumberField::new('interest')
-                ->formatValue(function ($value) {
-                    return $value . '%';
-                })
-                ->setHelp('Annual, in %'),
-            NumberField::new('tax')
-                ->formatValue(function ($value) {
-                    return $value ? $value . '%' : $value;
-                })
-                ->setHelp('in %')
+            PercentField::new('interest')
+                ->setStoredAsFractional(false)
+                ->setRoundingMode(\NumberFormatter::ROUND_CEILING)
+                ->setNumDecimals(2),
+            PercentField::new('tax')
+                ->setStoredAsFractional(false)
+                ->setRoundingMode(\NumberFormatter::ROUND_CEILING)
+                ->setNumDecimals(2)
                 ->hideOnIndex(),
             NumberField::new('period')
                 ->formatValue(function ($value) {

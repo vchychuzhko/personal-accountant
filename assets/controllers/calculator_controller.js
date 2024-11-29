@@ -8,8 +8,9 @@ export default class extends Controller {
 
         const amount = Number(formData.get('amount'));
         const interest = Number(formData.get('interest'));
+        const tax = Number(formData.get('tax'));
         const period = Number(formData.get('period'));
 
-        this.resultTarget.value = (amount + amount * (interest / 100) * (period / 12)).toFixed(2);
+        this.resultTarget.value = (amount + amount * (interest / 100) * (period / 12) * (1 - tax / 100)).toFixed(2);
     }
 }

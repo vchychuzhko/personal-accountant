@@ -22,7 +22,7 @@
                 <div class="flex-fill"></div>
                 <div class="col-md-6">
                     <div class="row">
-                        <div class="col-6">
+                        <div class="col-4">
                             <div class="field-number form-group">
                                 <label for="interest" class="form-control-label">Interest</label>
                                 <div class="form-widget">
@@ -34,7 +34,19 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-6">
+                        <div class="col-4">
+                            <div class="field-number form-group">
+                                <label for="tax" class="form-control-label">Tax</label>
+                                <div class="form-widget">
+                                    <input type="number" id="tax" name="tax" value="0" step="1"
+                                           inputmode="decimal" class="form-control"
+                                           {{ stimulus_action('calculator', 'update', 'input') }}
+                                    >
+                                    <small class="form-text form-help">in %</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
                             <div class="field-number form-group">
                                 <label for="period" class="form-control-label">Period</label>
                                 <div class="form-widget">
@@ -42,7 +54,7 @@
                                            inputmode="decimal" class="form-control"
                                            {{ stimulus_action('calculator', 'update', 'input') }}
                                     >
-                                    <small class="form-text form-help">Number of months</small>
+                                    <small class="form-text form-help">months</small>
                                 </div>
                             </div>
                         </div>
