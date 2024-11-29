@@ -1,0 +1,8 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
+{# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
+{% set badgeClassMap = {
+    0: 'badge-success',
+    1: 'badge-primary',
+} %}
+<span class="badge {{ badgeClassMap[field.value] }}">{{ field.formattedValue|trans|raw }}</span>

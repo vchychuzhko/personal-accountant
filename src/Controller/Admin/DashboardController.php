@@ -145,7 +145,7 @@ class DashboardController extends AbstractDashboardController
 
     private function getTotalInDeposits(): float
     {
-        $deposits = $this->depositRepository->findAll();
+        $deposits = $this->depositRepository->findAllActive();
         $totalInDeposits = 0;
 
         foreach ($deposits as $deposit) {
@@ -157,7 +157,7 @@ class DashboardController extends AbstractDashboardController
 
     private function getExpectedDepositsProfit(): float
     {
-        $deposits = $this->depositRepository->findAll();
+        $deposits = $this->depositRepository->findAllActive();
         $totalDepositProfit = 0;
 
         foreach ($deposits as $deposit) {

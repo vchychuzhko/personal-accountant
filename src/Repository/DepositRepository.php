@@ -16,28 +16,16 @@ class DepositRepository extends ServiceEntityRepository
         parent::__construct($registry, Deposit::class);
     }
 
-    //    /**
-    //     * @return Deposit[] Returns an array of Deposit objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('d')
-    //            ->andWhere('d.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('d.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Deposit
-    //    {
-    //        return $this->createQueryBuilder('d')
-    //            ->andWhere('d.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * @return Deposit[] Returns an array of Deposit objects
+     */
+    public function findAllActive(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.status = :val')
+            ->setParameter('val', Deposit::STATUS_ACTIVE)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

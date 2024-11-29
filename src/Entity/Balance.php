@@ -298,6 +298,8 @@ class Balance
 
     public function __toString(): string
     {
-        return $this->getName() . ' (' . $this->getCurrency() . ')';
+        $currency = $this->getCurrency();
+
+        return $this->getName() . ' (' . $currency . ')';
     }
 }

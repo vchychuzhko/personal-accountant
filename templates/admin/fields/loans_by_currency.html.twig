@@ -22,7 +22,7 @@
                     crudAction: 'detail',
                     entityId: loan.id
                 }) }}">
-                    {{ loan.person }} - {{ loan.amount }} {{ loan.currency }}
+                    {{ loan }} - {{ loan.amount | price(loan.currency.format) }}
                 </a>
             </li>
         {% endfor %}

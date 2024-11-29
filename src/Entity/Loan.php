@@ -65,18 +65,18 @@ class Loan
         return $this->amount;
     }
 
-    public function setAmount(float $amount): static
-    {
-        $this->amount = $amount;
-
-        return $this;
-    }
-
     public function getAmountInUsd(): ?float
     {
         $currency = $this->getCurrency();
 
         return $this->getAmount() / $currency->getRate();
+    }
+
+    public function setAmount(float $amount): static
+    {
+        $this->amount = $amount;
+
+        return $this;
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable
@@ -93,6 +93,8 @@ class Loan
 
     public function __toString(): string
     {
-        return $this->getPerson() . ' (' . $this->getCurrency() . ')';
+        $currency = $this->getCurrency();
+
+        return $this->getPerson() . ' (' . $currency . ')';
     }
 }

@@ -1,0 +1,42 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var action \EasyCorp\Bundle\EasyAdminBundle\Dto\ActionDto #}
+<button class="btn text-success" data-action-name="complete" data-bs-toggle="modal" data-bs-target="#modal-complete">
+    <span class="btn-label"><i class="action-icon fas fa-check"></i> <span class="action-label">Complete</span></span>
+</button>
+
+<div id="modal-complete" class="modal fade" tabindex="-1" aria-modal="true" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="mb-0">Complete your deposit</h4>
+            </div>
+            <div class="modal-body">
+                <form id="complete-form" action="{{ action.linkUrl }}" method="POST">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="field-number form-group">
+                                <label for="profit" class="form-control-label">Actual Profit</label>
+                                <div class="form-widget">
+                                    <input type="number" id="profit" name="profit" value="{{ ea.entity.instance.getExpectedProfit }}"
+                                           inputmode="decimal" class="form-control" step="any"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal" class="btn btn-secondary">
+                    <span class="btn-label">Cancel</span>
+                </button>
+                <button type="submit" data-bs-dismiss="modal" class="btn btn-success" id="modal-complete-button" form="complete-form">
+                    <span class="btn-label">Complete</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# To activate margin-left on next button #}
+<button class="btn" hidden></button>

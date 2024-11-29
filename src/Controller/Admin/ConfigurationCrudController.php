@@ -45,7 +45,6 @@ class ConfigurationCrudController extends AbstractCrudController
 
     public function clearCache(
         TagAwareCacheInterface $cache,
-        SessionInterface $session,
         AdminUrlGenerator $adminUrlGenerator
     ): RedirectResponse {
         $cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);

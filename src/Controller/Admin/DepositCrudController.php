@@ -3,21 +3,32 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Deposit;
+use App\Entity\Income;
 use App\Utils\PriceUtils;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class DepositCrudController extends AbstractCrudController
 {
@@ -72,6 +83,13 @@ class DepositCrudController extends AbstractCrudController
                     return PriceUtils::format($value, $currency->getFormat());
                 })
                 ->onlyOnDetail(),
+            NumberField::new('actual_profit')
+                ->formatValue(function ($value, Deposit $entity) {
+                    $currency = $entity->getBalance()->getCurrency();
+
+                    return $value ? PriceUtils::format($value, $currency->getFormat()) : $value;
+                })
+                ->onlyOnDetail(),
 
             FormField::addFieldset()
                 ->onlyOnDetail(),
@@ -86,14 +104,29 @@ class DepositCrudController extends AbstractCrudController
                     return PriceUtils::format($value);
                 })
                 ->hideOnForm(),
+            NumberField::new('actual_profit_in_usd', 'Actual Profit in USD')
+                ->formatValue(function ($value) {
+                    return $value ? PriceUtils::format($value): $value;
+                })
+                ->hideOnForm(),
 
             FormField::addColumn(4),
             FormField::addFieldset(),
+            ChoiceField::new('status')
+                ->setChoices(array_flip(Deposit::STATUS_MAP))
+                ->setTemplatePath('admin/fields/status.html.twig')
+                ->setRequired(true),
             NumberField::new('interest')
                 ->formatValue(function ($value) {
                     return $value . '%';
                 })
                 ->setHelp('Annual, in %'),
+            NumberField::new('tax')
+                ->formatValue(function ($value) {
+                    return $value ? $value . '%' : $value;
+                })
+                ->setHelp('in %')
+                ->hideOnIndex(),
             NumberField::new('period')
                 ->formatValue(function ($value) {
                     return $value . ' ' . ($value === 1 ? 'month' : ' months');
@@ -110,12 +143,87 @@ class DepositCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
-            ->add('balance');
+            ->add('balance')
+            ->add(
+                ChoiceFilter::new('status')
+                    ->setChoices(array_flip(Deposit::STATUS_MAP))
+            )
+        ;
     }
 
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
             ->setDefaultSort(['id' => 'DESC']);
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        $complete = Action::new('complete')
+            ->linkToCrudAction('complete')
+            ->setTemplatePath('admin/deposit_complete_action.html.twig')
+            ->displayIf(fn (Deposit $deposit) => !$deposit->isCompleted());
+
+        return parent::configureActions($actions)
+            ->add(Crud::PAGE_DETAIL, $complete);
+    }
+
+    public function complete(
+        AdminContext $adminContext,
+        EntityManagerInterface $entityManager,
+        Request $request,
+        TagAwareCacheInterface $cache,
+        AdminUrlGenerator $adminUrlGenerator,
+    ): RedirectResponse {
+        /** @var Deposit $deposit */
+        $deposit = $adminContext->getEntity()->getInstance();
+
+        $actualProfit = (float) $request->get('profit');
+
+        $income = new Income();
+        $income
+            ->setName('Yield from "' . $deposit->getName() . '" (#' . $deposit->getId() . ')')
+            ->setBalance($deposit->getBalance())
+            ->setAmount($actualProfit);
+        $entityManager->persist($income);
+
+        $balance = $deposit->getBalance();
+        $balance->setAmount($balance->getAmount() + $deposit->getAmount() + $actualProfit);
+        $entityManager->persist($balance);
+
+        $deposit->setStatus(Deposit::STATUS_COMPLETED);
+        $deposit->setActualProfit($actualProfit);
+        $entityManager->persist($deposit);
+
+        $entityManager->flush();
+
+        $cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
+
+        $this->addFlash('success', 'Deposit "' . $deposit->getName() . '" is completed');
+
+        $targetUrl = $adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Crud::PAGE_DETAIL)
+            ->setEntityId($deposit->getId())
+            ->generateUrl();
+
+        return $this->redirect($targetUrl);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Deposit $entityInstance
+     * @return void
+     */
+    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        $balance = $entityInstance->getBalance();
+
+        $balance->setAmount($balance->getAmount() - $entityInstance->getAmount());
+
+        $entityManager->persist($balance);
+        $entityManager->flush();
+
+        parent::persistEntity($entityManager, $entityInstance);
     }
 }

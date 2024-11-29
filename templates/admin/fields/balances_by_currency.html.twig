@@ -22,7 +22,7 @@
                     crudAction: 'detail',
                     entityId: balance.id
                 }) }}">
-                    {{ balance.name }} - {{ balance.amount }} {{ balance.currency }}
+                    {{ balance }} - {{ balance.amount | price(balance.currency.format) }}
                 </a>
             </li>
         {% endfor %}
