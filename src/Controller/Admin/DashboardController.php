@@ -12,8 +12,12 @@ use App\Entity\Loan;
 use App\Entity\Tag;
 use App\Entity\Payment;
 use App\Repository\BalanceRepository;
+use App\Repository\CurrencyRepository;
+use App\Repository\DepositRepository;
+use App\Repository\IncomeRepository;
 use App\Repository\LoanRepository;
 use App\Repository\PaymentRepository;
+use App\Repository\TagRepository;
 use App\Utils\PriceUtils;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -35,9 +39,13 @@ class DashboardController extends AbstractDashboardController
 
     public function __construct(
         private readonly BalanceRepository $balanceRepository,
+        private readonly CurrencyRepository $currencyRepository,
         private readonly ChartBuilderInterface $chartBuilder,
+        private readonly DepositRepository $depositRepository,
+        private readonly IncomeRepository $incomeRepository,
         private readonly LoanRepository $loanRepository,
         private readonly PaymentRepository $paymentRepository,
+        private readonly TagRepository $tagRepository,
         private readonly TagAwareCacheInterface $cache
     ) {
     }
@@ -68,6 +76,9 @@ class DashboardController extends AbstractDashboardController
                     'chart'=> $this->getTotalsChart('first day of 6 months ago', 'week'),
                 ],
             ],
+            'assets_by_balance_chart' => $this->getAssetsByBalanceChart(),
+            'assets_by_currency_chart' => $this->getAssetsByCurrencyChart(),
+            'expenses_by_tag_chart' => $this->getExpensesByTagChart(),
         ]);
     }
 
@@ -234,6 +245,134 @@ class DashboardController extends AbstractDashboardController
             'plugins' => [
                 'legend' => [
                     'display' => false,
+                ],
+            ],
+        ]);
+
+        return $chart;
+    }
+
+    private function getAssetsByBalanceChart(): Chart
+    {
+        $data = $this->cache->get('Assets by balance', function (ItemInterface $item) {
+            $item->expiresAfter(86400);
+            $item->tag(self::DASHBOARD_CACHE_TAG);
+
+            $balances = $this->balanceRepository->findAll();
+            $chart1 = $this->chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+            $chart1->setData([
+                'labels' => array_map(fn(Balance $balance) => $balance->__toString(), $balances),
+                'datasets' => [
+                    [
+                        'data' => array_map(fn(Balance $balance) => number_format($balance->getAmountInUsd(), 2, '.', ''), $balances),
+                    ],
+                ],
+            ]);
+
+            $data = array_map(function (Balance $balance) {
+                return [
+                    'label' => (string) $balance,
+                    'value' => number_format($balance->getAmountInUsd(), 2, '.', ''),
+                ];
+            }, $balances);
+
+            usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
+
+            return $data;
+        });
+
+        return $this->getDoughnutChart($data, 'Assets by balance (in USD)');
+    }
+
+    private function getAssetsByCurrencyChart(): Chart
+    {
+        $data = $this->cache->get('Assets by currency', function (ItemInterface $item) {
+            $item->expiresAfter(86400);
+            $item->tag(self::DASHBOARD_CACHE_TAG);
+
+            $currencies = $this->currencyRepository->findAll();
+
+            $data = array_map(function (Currency $currency) {
+                $balances = $currency->getBalances();
+                $total = 0;
+
+                foreach ($balances as $balance) {
+                    $total += $balance->getAmountInUsd();
+                }
+
+                return [
+                    'label' => $currency->getCode(),
+                    'value' => number_format($total, 2, '.', ''),
+                ];
+            }, $currencies);
+
+            usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
+
+            return $data;
+        });
+
+        return $this->getDoughnutChart($data, 'Assets by currency (in USD)');
+    }
+
+    private function getExpensesByTagChart(): Chart
+    {
+        $data = $this->cache->get('Expenses by tag', function (ItemInterface $item) {
+            $item->expiresAfter(86400);
+            $item->tag(self::DASHBOARD_CACHE_TAG);
+
+            $tags = $this->tagRepository->findAll();
+            $payments = $this->paymentRepository->findAll();
+            $totalExpenses = 0;
+
+            foreach ($payments as $payment) {
+                $totalExpenses = $totalExpenses + $payment->getAmountInUsd();
+            }
+
+            $data = array_map(function (Tag $tag) use ($totalExpenses) {
+                $payments = $tag->getPayments();
+                $total = 0;
+
+                foreach ($payments as $payment) {
+                    $total += $payment->getAmountInUsd();
+                }
+
+                return [
+                    'label' => $tag->getName(),
+                    'value' => number_format($total / $totalExpenses * 100, 1, '.', ''),
+                ];
+            }, $tags);
+
+            usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
+
+            return $data;
+        });
+
+        return $this->getDoughnutChart($data, 'Expenses by tag (in %)');
+    }
+
+    private function getDoughnutChart(array $data, string $title): Chart
+    {
+        $chart = $this->chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+        $chart->setData([
+            'labels' => array_map(fn ($item) => $item['label'], $data),
+            'datasets' => [
+                [
+                    'data' => array_map(fn ($item) => $item['value'], $data),
+                ],
+            ],
+        ]);
+
+        $chart->setOptions([
+            'plugins' => [
+                'legend' => [
+                    'display' => false,
+                ],
+                'title' => [
+                    'display' => true,
+                    'text' => $title,
+                ],
+                'autocolors' => [
+                    'mode' => 'data',
                 ],
             ],
         ]);

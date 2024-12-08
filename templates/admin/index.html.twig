@@ -39,4 +39,15 @@
         <p class="text-secondary">Total in loans: {{ total_in_loans }}</p>
     </div>
 </div>
+<div class="row">
+    <div class="col-4">
+        {{ render_chart(assets_by_balance_chart) }}
+    </div>
+    <div class="col-4">
+        {{ render_chart(assets_by_currency_chart) }}
+    </div>
+    <div class="col-4">
+        {{ render_chart(expenses_by_tag_chart) }}
+    </div>
+</div>
 {% endblock %}
