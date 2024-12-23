@@ -84,7 +84,7 @@ class DepositCrudController extends AbstractCrudController
                     return PriceUtils::format($value, $currency->getFormat());
                 })
                 ->onlyOnDetail(),
-            NumberField::new('actual_profit')
+            NumberField::new('profit')
                 ->formatValue(function ($value, Deposit $entity) {
                     $currency = $entity->getBalance()->getCurrency();
 
@@ -105,7 +105,7 @@ class DepositCrudController extends AbstractCrudController
                     return PriceUtils::format($value);
                 })
                 ->hideOnForm(),
-            NumberField::new('actual_profit_in_usd', 'Actual Profit in USD')
+            NumberField::new('profit_in_usd', 'Profit in USD')
                 ->formatValue(function ($value) {
                     return $value ? PriceUtils::format($value): $value;
                 })
@@ -130,7 +130,8 @@ class DepositCrudController extends AbstractCrudController
                 ->formatValue(function ($value) {
                     return $value . ' ' . ($value === 1 ? 'month' : ' months');
                 })
-                ->setHelp('Number of months'),
+                ->setHelp('Number of months')
+                ->hideOnIndex(),
             DateField::new('start_date')
                 ->setFormat('dd-MM-yyyy')
                 ->hideOnIndex(),
@@ -177,21 +178,21 @@ class DepositCrudController extends AbstractCrudController
         /** @var Deposit $deposit */
         $deposit = $adminContext->getEntity()->getInstance();
 
-        $actualProfit = (float) $request->get('profit');
+        $profit = (float) $request->get('profit');
 
         $income = new Income();
         $income
             ->setName('Yield from "' . $deposit->getName() . '" (#' . $deposit->getId() . ')')
             ->setBalance($deposit->getBalance())
-            ->setAmount($actualProfit);
+            ->setAmount($profit);
         $entityManager->persist($income);
 
         $balance = $deposit->getBalance();
-        $balance->setAmount($balance->getAmount() + $deposit->getAmount() + $actualProfit);
+        $balance->setAmount($balance->getAmount() + $deposit->getAmount() + $profit);
         $entityManager->persist($balance);
 
         $deposit->setStatus(Deposit::STATUS_COMPLETED);
-        $deposit->setActualProfit($actualProfit);
+        $deposit->setProfit($profit);
         $entityManager->persist($deposit);
 
         $entityManager->flush();

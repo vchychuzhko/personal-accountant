@@ -14,7 +14,7 @@ class Deposit
 
     public const STATUS_MAP = [
         self::STATUS_ACTIVE => 'Active',
-        self::STATUS_COMPLETED => 'Completed',
+        self::STATUS_COMPLETED => 'Closed',
     ];
 
     #[ORM\Id]
@@ -33,7 +33,7 @@ class Deposit
     private ?float $amount = null;
 
     #[ORM\Column(nullable: true)]
-    private ?float $actual_profit = null;
+    private ?float $profit = null;
 
     #[ORM\Column]
     private ?int $status = null;
@@ -125,24 +125,24 @@ class Deposit
         return $this->getExpectedProfit() / $currency->getRate();
     }
 
-    public function getActualProfit(): ?float
+    public function getProfit(): ?float
     {
-        return $this->actual_profit;
+        return $this->profit;
     }
 
-    public function setActualProfit(float $actual_profit): static
+    public function setProfit(float $profit): static
     {
-        $this->actual_profit = $actual_profit;
+        $this->profit = $profit;
 
         return $this;
     }
 
-    public function getActualProfitInUsd(): ?float
+    public function getProfitInUsd(): ?float
     {
         $balance = $this->getBalance();
         $currency = $balance->getCurrency();
 
-        return $this->getActualProfit() ? $this->getActualProfit() / $currency->getRate() : null;
+        return $this->getProfit() ? $this->getProfit() / $currency->getRate() : null;
     }
 
     public function getStatus(): ?int
