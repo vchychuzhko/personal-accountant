@@ -51,7 +51,9 @@ class ExchangeCrudController extends AbstractCrudController
     {
         return $filters
             ->add('balance_from')
-            ->add('balance_to');
+            ->add('balance_to')
+            ->add('created_at')
+        ;
     }
 
     public function configureCrud(Crud $crud): Crud
