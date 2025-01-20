@@ -4,14 +4,13 @@
 
 {% block main %}
 <div class="row">
-    <div class="col-8" {{ stimulus_controller('tabs') }}>
+    <div class="col-8">
         <ul class="nav nav-pills justify-content-center">
             {% for index, chart in main_charts %}
                 <li class="nav-item">
                     <button
                         class="nav-link{% if index is same as(0) %} active{% endif %}"
-                        {{ stimulus_action('tabs', 'switch', 'click', { 'tab': chart.id }) }}
-                        {{ stimulus_target('tabs', 'switch') }}
+                        data-bs-toggle="tab" data-bs-target="#{{ chart.id }}" role="tab"
                     >
                         {{ chart.title }}
                     </button>
@@ -20,7 +19,7 @@
         </ul>
         <div class="tab-content">
             {% for index, chart in main_charts %}
-                <div class="tab-pane fade{% if index is same as(0) %} show active{% endif %}" {{ stimulus_target('tabs', 'tab') }} data-tab="{{ chart.id }}">
+                <div class="tab-pane{% if index is same as(0) %} show active{% endif %}" id="{{ chart.id }}" role="tabpanel">
                     {{ render_chart(chart.chart) }}
                 </div>
             {% endfor %}
