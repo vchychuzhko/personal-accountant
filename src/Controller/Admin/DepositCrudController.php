@@ -115,8 +115,7 @@ class DepositCrudController extends AbstractCrudController
             FormField::addFieldset(),
             ChoiceField::new('status')
                 ->setChoices(array_flip(Deposit::STATUS_MAP))
-                ->setTemplatePath('admin/fields/status.html.twig')
-                ->setRequired(true),
+                ->setTemplatePath('admin/fields/status.html.twig'),
             PercentField::new('interest')
                 ->setStoredAsFractional(false)
                 ->setRoundingMode(\NumberFormatter::ROUND_CEILING)
