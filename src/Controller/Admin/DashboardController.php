@@ -62,7 +62,6 @@ class DashboardController extends AbstractDashboardController
             'expenses_this_month' => PriceUtils::format($expensesThisMonth),
             'diff_this_month' => PriceUtils::format($incomesThisMonth - $expensesThisMonth),
             'total_in_deposits' => PriceUtils::format($this->getTotalInDeposits()),
-            'expected_deposit_profit' => PriceUtils::format($this->getExpectedDepositsProfit()),
             'total_in_loans' => PriceUtils::format($this->getTotalInLoans()),
             'main_charts' => [
                 [
@@ -164,18 +163,6 @@ class DashboardController extends AbstractDashboardController
         }
 
         return $totalInDeposits;
-    }
-
-    private function getExpectedDepositsProfit(): float
-    {
-        $deposits = $this->depositRepository->findAllActive();
-        $totalDepositProfit = 0;
-
-        foreach ($deposits as $deposit) {
-            $totalDepositProfit += $deposit->getExpectedProfitInUsd();
-        }
-
-        return $totalDepositProfit;
     }
 
     private function getIncomesThisMonth(): float
