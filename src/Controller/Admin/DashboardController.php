@@ -37,6 +37,8 @@ class DashboardController extends AbstractDashboardController
 {
     public const DASHBOARD_CACHE_TAG = 'dashboard';
 
+    private const CHART_MIN_NUMBER_OF_DAYS = 7;
+
     public function __construct(
         private readonly BalanceRepository $balanceRepository,
         private readonly CurrencyRepository $currencyRepository,
@@ -202,6 +204,10 @@ class DashboardController extends AbstractDashboardController
             $day = new \DateTime("$startDay 00:00:00");
             $today = new \DateTime();
             $computedValue = [];
+
+            if ($day->diff($today)->days < self::CHART_MIN_NUMBER_OF_DAYS) {
+                $day = new \DateTime(self::CHART_MIN_NUMBER_OF_DAYS . ' days ago 00:00:00');
+            }
 
             while ($day <= $today) {
                 $total = 0;
