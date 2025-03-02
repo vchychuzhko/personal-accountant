@@ -45,7 +45,8 @@ php bin/console dbal:run-sql -q "INSERT INTO admin \
 
 Panel is available by default at - https://<your-localhost>/admin
 
-* On Configuration page you can set API key for [currencyapi](https://currencyapi.com/) service.
+* On Configuration page you can set API key for [Currency API](https://currencyapi.com/) service.
+* Dashboard charts are cacheable and can be refreshed manually on Configuration page.
 * Apps page has deposit calculator and currency converter apps.
 
 ### Entities
@@ -58,10 +59,11 @@ Panel is available by default at - https://<your-localhost>/admin
 | Payment  | Payment or transaction attached to Balance  |
 | Exchange | Transfer between Balances                   |
 | Deposit  | Open or completed deposits                  |
-|  Loan*   | Loans owed by person                        |
+|   Loan   | Loans owed by person                        |
 |   Tag    | Payment tags for expenses organizing        |
 
-&ast; Currently work-in-progress
+* Creating Income, Payment, Exchange or Deposit will update related Balance amount.
+* On Deposit completion, initial amount is returned to the Balance and Income with interest is created.
 
 ### Commands
 

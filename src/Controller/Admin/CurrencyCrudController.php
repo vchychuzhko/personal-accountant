@@ -41,6 +41,7 @@ class CurrencyCrudController extends AbstractCrudController
             NumberField::new('rate')
                 ->setNumDecimals(2),
             TextField::new('format')
+                ->setHelp('Use "%1" as placeholder for number value, e.g. "$%1"')
                 ->hideOnIndex(),
 
             FormField::addFieldset()
