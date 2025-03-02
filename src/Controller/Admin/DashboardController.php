@@ -321,6 +321,10 @@ class DashboardController extends AbstractDashboardController
                 $totalExpenses = $totalExpenses + $payment->getAmountInUsd();
             }
 
+            if (!$totalExpenses) {
+                return [];
+            }
+
             $data = array_map(function (Tag $tag) use ($totalExpenses) {
                 $payments = $tag->getPayments();
                 $total = 0;
