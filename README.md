@@ -1,7 +1,76 @@
 # Personal Accountant
 
-![version](https://img.shields.io/badge/version-0.0.1-orange)
+App to keep all your balances and transactions organized.
+
+*Do not trust anyone, host only locally*
+
+Demo - https://pa-demo.vchychuzhko.com
+
+## Table of Contents
+
+- [Deploy](#deploy)
+  - [Requirements](#requirements)
+  - [Create Admin User](#create-admin-user)
+- [Usage](#usage)
+  - [Web](#web)
+  - [Entities](#entities)
+  - [Commands](#commands)
+
+## Deploy
+
+### Requirements
+
+- PHP 8.3+
+- Composer 2
+- MySQL 8
+- Node 22+
+
+### Create Admin User
+
+To create initial admin user, use this commands to generate password hash and insert a user into database:
+
+```bash
+php bin/console security:hash-password
+php bin/console dbal:run-sql -q "INSERT INTO admin \
+  (username, roles, password) \
+  VALUES ('admin', '[\"ROLE_ADMIN\"]', \
+  '\$2y\$13\$XAcEN5O1gAk78..wSc6E4utusgZ17L3hA7X4xP2PMqZOIMuSGe6lS')"
+  
+# escape all "$" chars with backslash - "\$"
+```
+
+## Usage
+
+### Web
+
+Panel is available by default at - https://<your-localhost>/admin
+
+* On Configuration page you can set API key for [currencyapi](https://currencyapi.com/) service.
+* Apps page has deposit calculator and currency converter apps.
+
+### Entities
+
+|   Name   | Description                                 |
+|:--------:|---------------------------------------------|
+| Currency | Core entity that allows managing currencies |
+| Balance  | Balance representation                      |
+|  Income  | Income attached to Balance                  |
+| Payment  | Payment or transaction attached to Balance  |
+| Exchange | Transfer between Balances                   |
+| Deposit  | Open or completed deposits                  |
+|  Loan*   | Loans owed by person                        |
+|   Tag    | Payment tags for expenses organizing        |
+
+&ast; Currently work-in-progress
+
+### Commands
+
+#### Align Payment IDs according to created_at field
+
+```bash
+php bin/console app:fix-payment-ids
+```
 
 ---
 
-###### [Symfony 6.4](https://symfony.com/doc/6.4/index.html) is used
+###### Built with [Symfony 6.4](https://symfony.com/doc/6.4/index.html)
