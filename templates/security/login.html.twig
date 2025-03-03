@@ -45,10 +45,10 @@
         {% endif %}
 
         <label class="sr-only" for="username">Username</label>
-        <input class="form-control w-100 py-2" type="text" id="username" name="_username" placeholder="Username" value="{{ last_username }}" required autofocus>
+        <input class="form-control w-100 py-2" type="text" id="username" name="_username" placeholder="Username" value="admin" required autofocus>
 
         <label class="sr-only" for="password">Password</label>
-        <input class="form-control w-100 py-2" type="password" id="password" name="_password" placeholder="Password" required>
+        <input class="form-control w-100 py-2" type="password" id="password" name="_password" placeholder="Password" value="Q1w2e3r4" required>
 
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
