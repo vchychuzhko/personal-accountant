@@ -1,0 +1,28 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var action \EasyCorp\Bundle\EasyAdminBundle\Dto\ActionDto #}
+<button class="btn btn-secondary" data-action-name="update" data-bs-toggle="modal" data-bs-target="#modal-update">
+    <span class="btn-label"><span class="action-label">Update Rates</span></span>
+</button>
+
+<div id="modal-update" class="modal fade" tabindex="-1" aria-modal="true" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="mb-0">Action Placeholder</h4>
+            </div>
+            <div class="modal-body">
+                <p>This is a demo website, so no API request is sent.</p>
+                <p>This action performs fetch and update of currency rates.</p>
+                <p>Read more - <a href="https://currencyapi.com/docs/latest">Currency API</a></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal" class="btn btn-primary">
+                    <span class="btn-label">Close</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# To activate margin-left on next button #}
+<button class="btn" hidden></button>
