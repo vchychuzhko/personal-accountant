@@ -108,6 +108,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section();
         yield MenuItem::linkToCrud('Configuration', 'fas fa-gear', Configuration::class);
         yield MenuItem::linkToRoute('Apps', 'fas fa-calculator', 'app_admin_apps');
+        yield MenuItem::linkToUrl('About', 'fa-brands fa-github', 'https://github.com/vchychuzhko/personal-accountant');
     }
 
     public function configureActions(): Actions
