@@ -9,7 +9,6 @@
         .setAction('index')
         .set('filters[currency][value]', entity.primaryKeyValue)
         .set('filters[currency][comparison]', '=')
-        .unset('entityId')
     }}">
         {{ field.value | length }} loan(s)
     </a>

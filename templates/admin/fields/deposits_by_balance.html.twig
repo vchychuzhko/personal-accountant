@@ -9,7 +9,8 @@
         .setAction('index')
         .set('filters[balance][value]', entity.primaryKeyValue)
         .set('filters[balance][comparison]', '=')
-        .unset('entityId')
+        .set('filters[status][value]', 0)
+        .set('filters[status][comparison]', '=')
     }}">
         {{ field.value | length }} deposit(s)
     </a>

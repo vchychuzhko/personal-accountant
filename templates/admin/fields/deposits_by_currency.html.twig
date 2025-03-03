@@ -14,7 +14,7 @@
                     crudAction: 'detail',
                     entityId: deposit.id
                 }) }}">
-                    {{ deposit }} - {{ deposit.amount | price(deposit.balance.currency.format) }} ({{ deposit.getStatusLabel }})
+                    {{ deposit }} - {{ deposit.amount | price(deposit.balance.currency.format) }}
                 </a>
             </li>
         {% endfor %}

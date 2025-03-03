@@ -214,6 +214,14 @@ class Balance
         return $this->deposits;
     }
 
+    /**
+     * @return Collection<int, Deposit>
+     */
+    public function getActiveDeposits(): Collection
+    {
+        return $this->deposits->filter(fn(Deposit $deposit) => $deposit->isActive());
+    }
+
     public function addDeposit(Deposit $deposit): static
     {
         if (!$this->deposits->contains($deposit)) {

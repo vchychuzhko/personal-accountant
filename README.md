@@ -1,6 +1,6 @@
 # Personal Accountant
 
-App to keep all your balances and transactions organized.
+App to keep all balances and transactions organized.
 
 *Do not trust anyone, host only locally*
 

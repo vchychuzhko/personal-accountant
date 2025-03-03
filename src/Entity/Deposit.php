@@ -155,9 +155,9 @@ class Deposit
         return self::STATUS_MAP[$this->getStatus()] ?? null;
     }
 
-    public function isCompleted(): bool
+    public function isActive(): bool
     {
-        return $this->getStatus() === self::STATUS_COMPLETED;
+        return $this->getStatus() === self::STATUS_ACTIVE;
     }
 
     public function setStatus(int $status): static

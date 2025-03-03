@@ -137,7 +137,9 @@ class Currency
 
         foreach ($this->getBalances() as $balance) {
             foreach ($balance->getDeposits() as $deposit) {
-                $deposits->add($deposit);
+                if ($deposit->isActive()) {
+                    $deposits->add($deposit);
+                }
             }
         }
 

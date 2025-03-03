@@ -9,7 +9,6 @@
         .setAction('index')
         .set('filters[balance_to][value]', entity.primaryKeyValue)
         .set('filters[balance_to][comparison]', '=')
-        .unset('entityId')
     }}">
         {{ field.value | length }} exchange(s)
     </a>
