@@ -126,6 +126,7 @@ class InvestmentCrudController extends AbstractCrudController
     {
         $updateRates = Action::new('updatePrices')
             ->linkToCrudAction('updatePrices')
+            ->setTemplatePath('admin/demo/update_prices_action.html.twig')
             ->createAsGlobalAction();
 
         return parent::configureActions($actions)
