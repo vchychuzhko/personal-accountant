@@ -125,6 +125,7 @@ class DashboardController extends AbstractDashboardController
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_EDIT, Action::DETAIL)
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
+            ->setPermission(Action::DELETE, 'ROLE_BLOCKED') // nonexistent role to block action
         ;
     }
 
