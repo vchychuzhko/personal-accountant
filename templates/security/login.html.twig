@@ -33,10 +33,10 @@ input {
 
     <form action="{{ path('app_login') }}" method="post">
         <label for="username">Username:</label>
-        <input type="text" id="username" name="_username" value="{{ last_username }}" required autofocus>
+        <input type="text" id="username" name="_username" value="admin" required autofocus>
 
         <label for="password">Password:</label>
-        <input type="password" id="password" name="_password" required>
+        <input type="password" id="password" name="_password" value="Q1w2e3r4" required>
 
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
