@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+    <rect x="0" y="0" width="200" height="200" fill="#ffffff"/>
+    <g transform="translate(69, 50)">
+        <rect x="2" y="2" width="56" height="56" fill="#ffffff" stroke="#133359" stroke-width="3" rx="12" />
+        <path d="M 10 49 L 10 20 A 8 9 0 0 1 27 20 L 27 26 A 8 9 0 0 1 19 35 L 13 35 L 13 32 L 19 32 A 5 6 0 0 0 24 26 L 24 20 A 5 6 0 0 0 13 20 L 13 49 Z" fill="#133359" />
+        <path d="M 33 49 L 33 20 A 8 9 0 0 1 50 20 L 50 49 L 47 49 L 47 35 L 36 35 L 36 32 L 47 32 L 47 20 A 5 6 0 0 0 36 20 L 36 49 Z" fill="#133359" />
+    </g>
+    <text x="12" y="135" font-family="sans" font-size="18" fill="#133359">Personal Accountant</text>
+</svg>
