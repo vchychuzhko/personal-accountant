@@ -66,6 +66,7 @@ class CurrencyCrudController extends AbstractCrudController
     {
         $updateRates = Action::new('updateRates')
             ->linkToCrudAction('updateRates')
+            ->setTemplatePath('admin/demo/update_rates_action.html.twig')
             ->createAsGlobalAction();
 
         return parent::configureActions($actions)

@@ -11,3 +11,10 @@
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon-180x180.png') }}">
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
 {% endblock %}
+
+{% block wrapper_wrapper %}
+    <twig:ea:Alert variant="primary" withDismissButton="0">
+        {{ 'This is a demo website, all your changes will be lost. Delete action is disabled globally.'|trans|raw }}
+    </twig:ea:Alert>
+    {{ parent() }}
+{% endblock %}
