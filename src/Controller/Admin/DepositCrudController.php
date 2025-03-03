@@ -7,6 +7,7 @@ use App\Entity\Income;
 use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminAction;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -167,6 +168,7 @@ class DepositCrudController extends AbstractCrudController
             ->add(Crud::PAGE_DETAIL, $complete);
     }
 
+    #[AdminAction(routePath: '/complete', routeName: 'deposit_complete', methods: ['POST'])]
     public function complete(
         AdminContext $adminContext,
         EntityManagerInterface $entityManager,
