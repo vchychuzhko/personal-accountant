@@ -10,6 +10,9 @@ Demo - https://pa-demo.vchychuzhko.com
 
 - [Deploy](#deploy)
   - [Requirements](#requirements)
+  - [Install Packages](#install-packages)
+  - [Set local variables](#set-local-variables)
+  - [Generate Assets](#generate-assets)
   - [Create Admin User](#create-admin-user)
 - [Usage](#usage)
   - [Web](#web)
@@ -24,6 +27,34 @@ Demo - https://pa-demo.vchychuzhko.com
 - Composer 2
 - MySQL 8
 - Node 22+
+
+### Install Packages
+
+```bash
+composer install --no-dev
+```
+
+Drop `--no-dev` flag for development.
+
+### Set local variables
+
+Set MySQL credentials in `.env.local` file.
+
+```bash
+cp .env .env.local
+```
+
+### Generate Assets
+
+```bash
+php bin/console assets:install --env=prod
+php bin/console importmap:install --env=prod
+php bin/console asset-map:compile --env=prod
+```
+
+Drop `--env=prod` flag for development.
+
+[AssetMapper](https://symfony.com/doc/current/frontend/asset_mapper.html) is used.
 
 ### Create Admin User
 
@@ -43,7 +74,7 @@ php bin/console dbal:run-sql -q "INSERT INTO admin \
 
 ### Web
 
-Panel is available by default at - https://<your-localhost>/admin
+Panel is available by default at - https://&lt;your-localhost&gt;/admin
 
 * On Configuration page you can set API key for [Currency API](https://currencyapi.com/) service.
 * Dashboard charts are cacheable and can be refreshed manually on Configuration page.
