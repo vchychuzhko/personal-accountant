@@ -10,8 +10,8 @@ Demo - https://pa-demo.vchychuzhko.com
 
 - [Deploy](#deploy)
   - [Requirements](#requirements)
-  - [Install Packages](#install-packages)
   - [Set local variables](#set-local-variables)
+  - [Install Packages](#install-packages)
   - [Generate Assets](#generate-assets)
   - [Create Admin User](#create-admin-user)
 - [Usage](#usage)
@@ -23,18 +23,10 @@ Demo - https://pa-demo.vchychuzhko.com
 
 ### Requirements
 
-- PHP 8.3+
+- PHP 8.3
 - Composer 2
 - MySQL 8
-- Node 22+
-
-### Install Packages
-
-```bash
-composer install --no-dev
-```
-
-Drop `--no-dev` flag for development.
+- Node 22
 
 ### Set local variables
 
@@ -43,6 +35,14 @@ Set MySQL credentials in `.env.local` file.
 ```bash
 cp .env .env.local
 ```
+
+### Install Packages
+
+```bash
+composer install --no-dev
+```
+
+Drop `--no-dev` flag for development.
 
 ### Generate Assets
 
