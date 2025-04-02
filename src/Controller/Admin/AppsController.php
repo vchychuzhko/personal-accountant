@@ -15,7 +15,7 @@ class AppsController extends AbstractController
     ) {
     }
 
-    #[Route(path: '/admin/apps', name: 'app_admin_apps')]
+    #[Route(path: '/admin/apps', name: 'admin_apps')]
     public function index(): Response
     {
         $currencies = $this->currencyRepository->findAll();

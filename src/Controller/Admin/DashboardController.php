@@ -107,7 +107,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Currency', 'fas fa-dollar', Currency::class);
         yield MenuItem::section();
         yield MenuItem::linkToCrud('Configuration', 'fas fa-gear', Configuration::class);
-        yield MenuItem::linkToRoute('Apps', 'fas fa-calculator', 'app_admin_apps');
+        yield MenuItem::linkToRoute('Applications', 'fas fa-calculator', 'admin_apps');
         yield MenuItem::linkToUrl('About', 'fa-brands fa-github', 'https://github.com/vchychuzhko/personal-accountant');
     }
 
