@@ -58,16 +58,10 @@ Drop `--env=prod` flag for development.
 
 ### Create Admin User
 
-To create initial admin user, use this commands to generate password hash and insert a user into database:
+To create initial admin user, use this command:
 
 ```bash
-php bin/console security:hash-password
-php bin/console dbal:run-sql -q "INSERT INTO admin \
-  (username, roles, password) \
-  VALUES ('admin', '[\"ROLE_ADMIN\"]', \
-  '\$2y\$13\$XAcEN5O1gAk78..wSc6E4utusgZ17L3hA7X4xP2PMqZOIMuSGe6lS')"
-  
-# escape all "$" chars with backslash - "\$"
+php bin/console app:create-admin
 ```
 
 ## Usage

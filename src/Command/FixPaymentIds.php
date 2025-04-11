@@ -8,8 +8,12 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand(name: 'app:fix-payment-ids', description: 'Update all payment IDs according to their created_at order.')]
+#[AsCommand(
+    name: 'app:fix-payment-ids',
+    description: 'Update all payment IDs according to their created_at order',
+)]
 class FixPaymentIds extends Command
 {
     public function __construct(
@@ -21,6 +25,7 @@ class FixPaymentIds extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $io = new SymfonyStyle($input, $output);
         $payments = $this->connection->fetchAllAssociative('SELECT * FROM payment p ORDER BY p.created_at ASC');
 
         $modifiedCount = 0;
@@ -53,7 +58,7 @@ class FixPaymentIds extends Command
             $this->connection->insert('payment', $payment);
         }
 
-        $output->writeln('Payment IDs are updated.');
+        $io->success('Payment IDs are updated!');
 
         return Command::SUCCESS;
     }
