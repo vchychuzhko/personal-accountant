@@ -76,6 +76,11 @@ class DashboardController extends AbstractDashboardController
                     'title' => 'Last 6 Months',
                     'chart'=> $this->getTotalsChart('first day of 6 months ago', 'week'),
                 ],
+                [
+                    'id' => 'months_by_diff',
+                    'title' => 'Months By Diff',
+                    'chart'=> $this->getMonthDiffChart(),
+                ],
             ],
             'assets_by_balance_chart' => $this->getAssetsByBalanceChart(),
             'assets_by_currency_chart' => $this->getAssetsByCurrencyChart(),
@@ -225,6 +230,59 @@ class DashboardController extends AbstractDashboardController
         });
 
         $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
+        $chart->setData([
+            'labels' => array_keys($records),
+            'datasets' => [
+                [
+                    'label' => 'Total',
+                    'data' => array_map(fn($record) => number_format($record, 2, '.', ''), array_values($records)),
+                ],
+            ],
+        ]);
+
+        $chart->setOptions([
+            'plugins' => [
+                'legend' => [
+                    'display' => false,
+                ],
+            ],
+        ]);
+
+        return $chart;
+    }
+
+    private function getMonthDiffChart(): Chart
+    {
+        $records = $this->cache->get('months_by_diff', function (ItemInterface $item) {
+            $item->expiresAfter(86400);
+            $item->tag(self::DASHBOARD_CACHE_TAG);
+
+            $balances = $this->balanceRepository->findAll();
+
+            $day = new \DateTime('first day of 6 months ago 00:00:00');
+            $today = new \DateTime();
+            $computedValue = [];
+
+            while ($day <= $today) {
+                $totalStart = 0;
+                $totalEnd = 0;
+
+                $dayEnd = clone $day;
+                $dayEnd->modify('+1 month');
+
+                foreach ($balances as $balance) {
+                    $totalStart += $balance->getAmountInUsdAtMoment($day);
+                    $totalEnd += $balance->getAmountInUsdAtMoment($dayEnd);
+                }
+
+                $computedValue[$day->format('m/y')] = $totalEnd - $totalStart;
+                $day = $dayEnd;
+            }
+
+            return $computedValue;
+        });
+
+        $chart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
         $chart->setData([
             'labels' => array_keys($records),
             'datasets' => [
