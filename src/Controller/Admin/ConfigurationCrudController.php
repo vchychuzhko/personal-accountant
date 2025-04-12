@@ -11,7 +11,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ConfigurationCrudController extends AbstractCrudController
@@ -29,7 +28,8 @@ class ConfigurationCrudController extends AbstractCrudController
             TextField::new('label'),
             TextField::new('name')
                 ->setDisabled(),
-            TextField::new('value'),
+            TextField::new('value')
+                ->setTemplatePath('admin/fields/secured_text.html.twig'),
         ];
     }
 
