@@ -3,40 +3,52 @@
 {% block title %}Login{% endblock %}
 
 {% block stylesheets %}
-<style>
-body {
-    align-items: center;
-    background-color: #eee;
-    display: flex;
-    height: 100vh;
-    justify-content: center;
-    margin: 0;
-}
-form {
-    background-color: #fff;
-    border: 1px solid;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    padding: 2rem;
-}
-input {
-    margin-bottom: 1rem;
-}
-</style>
+    <link rel="stylesheet" href="{{ asset('app.css', 'easyadmin.assets.package') }}">
+    <style>
+        body {
+            align-items: center;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            margin: 0;
+        }
+        .form-login {
+            max-width: 320px;
+            text-align: center;
+            width: 100%;
+        }
+        .form-login input {
+            position: relative;
+        }
+        .form-login input[name="_username"] {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            margin-bottom: -1px;
+        }
+        .form-login input[name="_password"] {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+        .form-login input:focus {
+            z-index: 1;
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
-    {% if error %}
-        <div>{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-    {% endif %}
+    <form class="form-login" action="{{ path('app_login') }}" method="post">
+        <img class="mb-3" src="{{ asset('favicon.svg') }}" alt="Personal Accountant" width="72" height="72">
+        <h1 class="mb-3">Please log in</h1>
 
-    <form action="{{ path('app_login') }}" method="post">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="_username" value="{{ last_username }}" required autofocus>
+        {% if error %}
+            <p class="text-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</p>
+        {% endif %}
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="_password" required>
+        <label class="sr-only" for="username">Username</label>
+        <input class="form-control w-100 py-2" type="text" id="username" name="_username" placeholder="Username" value="{{ last_username }}" required autofocus>
+
+        <label class="sr-only" for="password">Password</label>
+        <input class="form-control w-100 py-2" type="password" id="password" name="_password" placeholder="Password" required>
 
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
@@ -50,6 +62,17 @@ input {
             </label>
         #}
 
-        <button type="submit">Login</button>
+        <button class="btn btn-primary w-100 mt-3 py-2 fs-5">Login</button>
+
+        <p class="mt-5 mb-3 text-muted">
+            <a
+                class="text-decoration-underline link-primary link-underline-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
+                href="https://github.com/vchychuzhko/personal-accountant"
+                target="_blank"
+            >
+                View on GitHub
+            </a>
+            &copy; Vladyslav Chychuzhko
+        </p>
     </form>
 {% endblock %}
