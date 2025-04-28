@@ -17,7 +17,6 @@ use App\Repository\DepositRepository;
 use App\Repository\IncomeRepository;
 use App\Repository\LoanRepository;
 use App\Repository\PaymentRepository;
-use App\Repository\TagRepository;
 use App\Utils\PriceUtils;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -48,7 +47,6 @@ class DashboardController extends AbstractDashboardController
         private readonly IncomeRepository $incomeRepository,
         private readonly LoanRepository $loanRepository,
         private readonly PaymentRepository $paymentRepository,
-        private readonly TagRepository $tagRepository,
         private readonly TagAwareCacheInterface $cache
     ) {
     }
@@ -91,7 +89,8 @@ class DashboardController extends AbstractDashboardController
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()
-            ->setTitle('Personal Accountant');
+            ->setTitle('Personal Accountant')
+        ;
     }
 
     /**
@@ -122,19 +121,22 @@ class DashboardController extends AbstractDashboardController
             ->add(Crud::PAGE_EDIT, Action::INDEX)
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_EDIT, Action::DETAIL)
-            ->remove(Crud::PAGE_INDEX, Action::DELETE);
+            ->remove(Crud::PAGE_INDEX, Action::DELETE)
+        ;
     }
 
     public function configureCrud(): Crud
     {
         return parent::configureCrud()
-            ->showEntityActionsInlined();
+            ->showEntityActionsInlined()
+        ;
     }
 
     public function configureAssets(): Assets
     {
         return parent::configureAssets()
-            ->addAssetMapperEntry('app');
+            ->addAssetMapperEntry('app')
+        ;
     }
 
     private function getGrandTotal(): float
@@ -372,29 +374,36 @@ class DashboardController extends AbstractDashboardController
             $item->expiresAfter(86400);
             $item->tag(self::DASHBOARD_CACHE_TAG);
 
-            $tags = $this->tagRepository->findAll();
-            $payments = $this->paymentRepository->findAll();
+            $dateFrom = new \DateTime('first day of this month');
+
+            $payments = $this->paymentRepository->findAfterDate($dateFrom);
             $totalExpenses = 0;
+            $tags = [];
 
             foreach ($payments as $payment) {
                 $totalExpenses = $totalExpenses + $payment->getAmountInUsd();
+
+                $tag = $payment->getTag();
+                $tagId = $tag->getId();
+
+                if (!isset($tags[$tagId])) {
+                    $tags[$tagId] = [
+                        'name' => $tag->getName(),
+                        'amount' => 0,
+                    ];
+                }
+
+                $tags[$tagId]['amount'] = $tags[$tagId]['amount'] + $payment->getAmountInUsd();
             }
 
             if (!$totalExpenses) {
                 return [];
             }
 
-            $data = array_map(function (Tag $tag) use ($totalExpenses) {
-                $payments = $tag->getPayments();
-                $total = 0;
-
-                foreach ($payments as $payment) {
-                    $total += $payment->getAmountInUsd();
-                }
-
+            $data = array_map(function ($tag) use ($totalExpenses) {
                 return [
-                    'label' => $tag->getName(),
-                    'value' => number_format($total / $totalExpenses * 100, 1, '.', ''),
+                    'label' => $tag['name'],
+                    'value' => number_format($tag['amount'] / $totalExpenses * 100, 1, '.', ''),
                 ];
             }, $tags);
 
@@ -403,7 +412,7 @@ class DashboardController extends AbstractDashboardController
             return $data;
         });
 
-        return $this->getDoughnutChart($data, 'Expenses by tag (in %)');
+        return $this->getDoughnutChart($data, 'Expenses this month (in %)');
     }
 
     private function getDoughnutChart(array $data, string $title): Chart
