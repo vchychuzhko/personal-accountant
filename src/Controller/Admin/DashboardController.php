@@ -47,7 +47,7 @@ class DashboardController extends AbstractDashboardController
         private readonly IncomeRepository $incomeRepository,
         private readonly LoanRepository $loanRepository,
         private readonly PaymentRepository $paymentRepository,
-        private readonly TagAwareCacheInterface $cache
+        private readonly TagAwareCacheInterface $cache,
     ) {
     }
 
@@ -100,11 +100,12 @@ class DashboardController extends AbstractDashboardController
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
         yield MenuItem::linkToCrud('Balance', 'fas fa-coins', Balance::class);
-        yield MenuItem::section();
+        yield MenuItem::linkToRoute('Analyze', 'fas fa-chart-simple', 'admin_analyze');
+        yield MenuItem::section('Transactions');
         yield MenuItem::linkToCrud('Income', 'fas fa-money-bill-trend-up', Income::class);
         yield MenuItem::linkToCrud('Payment', 'fas fa-money-bill', Payment::class);
-        yield MenuItem::linkToCrud('Exchange', 'fas fa-hand-holding-dollar', Exchange::class);
-        yield MenuItem::section();
+        yield MenuItem::linkToCrud('Exchange', 'fas fa-money-bill-transfer', Exchange::class);
+        yield MenuItem::section('Savings');
         yield MenuItem::linkToCrud('Deposit', 'fas fa-percent', Deposit::class);
         yield MenuItem::linkToCrud('Loan', 'fas fa-sack-dollar', Loan::class);
         yield MenuItem::linkToCrud('Tag', 'fas fa-tag', Tag::class);
@@ -389,11 +390,11 @@ class DashboardController extends AbstractDashboardController
                 if (!isset($tags[$tagId])) {
                     $tags[$tagId] = [
                         'name' => $tag->getName(),
-                        'amount' => 0,
+                        'total' => 0,
                     ];
                 }
 
-                $tags[$tagId]['amount'] = $tags[$tagId]['amount'] + $payment->getAmountInUsd();
+                $tags[$tagId]['total'] = $tags[$tagId]['total'] + $payment->getAmountInUsd();
             }
 
             if (!$totalExpenses) {
@@ -403,7 +404,7 @@ class DashboardController extends AbstractDashboardController
             $data = array_map(function ($tag) use ($totalExpenses) {
                 return [
                     'label' => $tag['name'],
-                    'value' => number_format($tag['amount'] / $totalExpenses * 100, 1, '.', ''),
+                    'value' => number_format($tag['total'] / $totalExpenses * 100, 1, '.', ''),
                 ];
             }, $tags);
 

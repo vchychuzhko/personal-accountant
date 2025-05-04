@@ -1,0 +1,170 @@
+<?php
+
+namespace App\Controller\Admin;
+
+use App\Repository\CurrencyRepository;
+use App\Repository\PaymentRepository;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\UX\Chartjs\Model\Chart;
+
+class AnalyzeController extends AbstractController
+{
+    public function __construct(
+        private readonly AdminUrlGenerator $adminUrlGenerator,
+        private readonly ChartBuilderInterface $chartBuilder,
+        private readonly CurrencyRepository $currencyRepository,
+        private readonly PaymentRepository $paymentRepository,
+        private readonly TagAwareCacheInterface $cache,
+    ) {
+    }
+
+    #[Route(path: '/admin/analyze', name: 'admin_analyze')]
+    public function index(Request $request): Response
+    {
+        $sortBy = $request->get('sort', 'total');
+
+        $lastMonth = (new \DateTime('first day of last month'))->format('F Y');
+
+        return $this->render('admin/analyze.html.twig', [
+            'currencies' => $this->currencyRepository->findAll(),
+            'last_month' => $lastMonth,
+            'total_expenses' => $this->getTotalExpensesLastMonth($lastMonth),
+            'tags' => $this->getExpensesByTagLastMonth($lastMonth, $sortBy),
+            'sort_by' => $sortBy,
+            'expenses_by_tag_chart' => $this->getExpensesByTagLastMonthChart($lastMonth),
+        ]);
+    }
+
+    private function getTotalExpensesLastMonth(string $lastMonthKey): float
+    {
+        $tags = $this->getExpensesByTagLastMonth($lastMonthKey);
+        $total = 0;
+
+        foreach ($tags as $tag) {
+            $total = $total + $tag['total'];
+        }
+
+        return $total;
+    }
+
+    private function getExpensesByTagLastMonth(string $lastMonthKey, ?string $sortBy = null): array
+    {
+        $data = $this->cache->get('Expenses by tag ' . $lastMonthKey, function (ItemInterface $item) {
+            $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
+
+            $dateFrom = new \DateTime('first day of last month');
+            $dateTo = new \DateTime('first day of this month');
+
+            $payments = $this->paymentRepository->findBetweenDates($dateFrom, $dateTo);
+            $data = [];
+
+            foreach ($payments as $payment) {
+                $tag = $payment->getTag();
+                $tagId = $tag->getId();
+
+                if (!isset($data[$tagId])) {
+                    $data[$tagId] = [
+                        'id' => $tagId,
+                        'name' => $tag->getName(),
+                        'payments' => [],
+                        'payments_url' => $this->getPaymentsByTagAndCreatedAtUrl($tagId, $dateFrom, $dateTo),
+                        'total' => 0,
+                    ];
+                }
+
+                $data[$tagId]['payments'][] = $payment;
+                $data[$tagId]['total'] = $data[$tagId]['total'] + $payment->getAmountInUsd();
+            }
+
+            return $data;
+        });
+
+        if ($sortBy) {
+            usort($data, fn($a, $b) => $b[$sortBy] <=> $a[$sortBy]);
+        }
+
+        return $data;
+    }
+
+    private function getPaymentsByTagAndCreatedAtUrl(int $tagId, \DateTime $dateFrom, \DateTime $dateTo): string
+    {
+        return $this->adminUrlGenerator
+            ->setController(PaymentCrudController::class)
+            ->setAction('index')
+            ->set('filters[tag][comparison]', '=')
+            ->set('filters[tag][value]', $tagId)
+            ->set('filters[created_at][comparison]', 'between')
+            ->set('filters[created_at][value][date][month]', $dateFrom->format('n'))
+            ->set('filters[created_at][value][date][day]', 1)
+            ->set('filters[created_at][value][date][year]', $dateFrom->format('Y'))
+            ->set('filters[created_at][value][time][hour]', 0)
+            ->set('filters[created_at][value][time][minute]', 0)
+            ->set('filters[created_at][value2][date][month]', $dateTo->format('n'))
+            ->set('filters[created_at][value2][date][day]', 1)
+            ->set('filters[created_at][value2][date][year]', $dateTo->format('Y'))
+            ->set('filters[created_at][value2][time][hour]', 0)
+            ->set('filters[created_at][value2][time][minute]', 0)
+            ->set('sort[amount_in_usd]', 'DESC')
+            ->generateUrl();
+    }
+
+    private function getExpensesByTagLastMonthChart(string $lastMonthKey): Chart
+    {
+        $data = $this->cache->get('Expenses by tag ' . $lastMonthKey . ' chart', function (ItemInterface $item) use ($lastMonthKey) {
+            $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
+
+            $tags = $this->getExpensesByTagLastMonth($lastMonthKey);
+            $totalExpenses = $this->getTotalExpensesLastMonth($lastMonthKey);
+
+            $data = array_map(function ($tag) use ($totalExpenses) {
+                return [
+                    'label' => $tag['name'],
+                    'value' => number_format($tag['total'] / $totalExpenses * 100, 1, '.', ''),
+                ];
+            }, $tags);
+
+            usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
+
+            return $data;
+        });
+
+        return $this->getPieChart($data, 'In %');
+    }
+
+    private function getPieChart(array $data, string $title): Chart
+    {
+        $chart = $this->chartBuilder->createChart(Chart::TYPE_PIE);
+        $chart->setData([
+            'labels' => array_map(fn ($item) => $item['label'], $data),
+            'datasets' => [
+                [
+                    'data' => array_map(fn ($item) => $item['value'], $data),
+                ],
+            ],
+        ]);
+
+        $chart->setOptions([
+            'plugins' => [
+                'legend' => [
+                    'display' => false,
+                ],
+                'title' => [
+                    'display' => true,
+                    'text' => $title,
+                ],
+                'autocolors' => [
+                    'mode' => 'data',
+                ],
+            ],
+        ]);
+
+        return $chart;
+    }
+}

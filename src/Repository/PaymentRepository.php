@@ -28,4 +28,19 @@ class PaymentRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
+
+    /**
+     * @return Payment[] Returns an array of Payment objects
+     */
+    public function findBetweenDates(\DateTimeInterface $from, \DateTimeInterface $to): array
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.created_at > :from')
+            ->andWhere('p.created_at < :to')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

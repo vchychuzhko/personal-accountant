@@ -40,7 +40,9 @@ class ConfigurationCrudController extends AbstractCrudController
             ->createAsGlobalAction();
 
         return parent::configureActions($actions)
-            ->add(Crud::PAGE_INDEX, $clearCache);
+            ->add(Crud::PAGE_INDEX, $clearCache)
+            ->setPermission(Action::DELETE, 'ROLE_BLOCKED')
+        ;
     }
 
     public function clearCache(

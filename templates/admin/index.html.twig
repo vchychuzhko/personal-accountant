@@ -4,7 +4,7 @@
 
 {% block main %}
 <div class="row row-gap-3">
-    <div class="col-12 col-lg-8">
+    <div class="col-12 col-md-8">
         <ul class="nav nav-pills justify-content-center">
             {% for index, chart in main_charts %}
                 <li class="nav-item">
@@ -25,7 +25,7 @@
             {% endfor %}
         </div>
     </div>
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-md-4">
         <h2>Total: {{ total }}</h2>
         <p class="text-secondary">Total in deposits: {{ total_in_deposits }}</p>
         <hr>
@@ -37,13 +37,13 @@
     </div>
 </div>
 <div class="row row-gap-3 mt-3">
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-md-4">
         {{ render_chart(assets_by_balance_chart) }}
     </div>
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-md-4">
         {{ render_chart(assets_by_currency_chart) }}
     </div>
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-md-4">
         {{ render_chart(expenses_by_tag_chart) }}
     </div>
 </div>
