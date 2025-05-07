@@ -16,11 +16,12 @@
     <ul class="ps-3 mb-0">
         {% for balance in field.value %}
             <li>
-                <a href="{{ path('admin', {
-                    crudControllerFqcn: 'App\\Controller\\Admin\\BalanceCrudController',
-                    crudAction: 'detail',
-                    entityId: balance.id
-                }) }}">
+                <a href="{{
+                    ea_url()
+                        .setController('App\\Controller\\Admin\\BalanceCrudController')
+                        .setAction('detail')
+                        .setEntityId(balance.id)
+                }}">
                     {{ balance }} - {{ balance.amount | price(balance.currency.format) }}
                 </a>
             </li>

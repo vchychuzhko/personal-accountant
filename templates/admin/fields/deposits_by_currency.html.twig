@@ -9,11 +9,12 @@
     <ul class="ps-3 mb-0">
         {% for deposit in field.value %}
             <li>
-                <a href="{{ path('admin', {
-                    crudControllerFqcn: 'App\\Controller\\Admin\\DepositCrudController',
-                    crudAction: 'detail',
-                    entityId: deposit.id
-                }) }}">
+                <a href="{{
+                    ea_url()
+                        .setController('App\\Controller\\Admin\\DepositCrudController')
+                        .setAction('detail')
+                        .setEntityId(deposit.id)
+                }}">
                     {{ deposit }} - {{ deposit.amount | price(deposit.balance.currency.format) }}
                 </a>
             </li>
