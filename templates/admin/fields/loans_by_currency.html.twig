@@ -16,11 +16,11 @@
     <ul class="ps-3 mb-0">
         {% for loan in field.value %}
             <li>
-                <a href="{{ path('admin', {
-                    crudControllerFqcn: 'App\\Controller\\Admin\\LoanCrudController',
-                    crudAction: 'detail',
-                    entityId: loan.id
-                }) }}">
+                <a href="{{ ea_url()
+                    .setController('App\\Controller\\Admin\\LoanCrudController')
+                    .setAction('detail')
+                    .setEntityId(loan.id)
+                }}">
                     {{ loan }} - {{ loan.amount | price(loan.currency.format) }}
                 </a>
             </li>
