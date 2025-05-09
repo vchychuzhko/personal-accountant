@@ -30,7 +30,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class DepositCrudController extends AbstractCrudController
 {
@@ -173,7 +172,6 @@ class DepositCrudController extends AbstractCrudController
         AdminContext $adminContext,
         EntityManagerInterface $entityManager,
         Request $request,
-        TagAwareCacheInterface $cache,
         AdminUrlGenerator $adminUrlGenerator,
     ): RedirectResponse {
         /** @var Deposit $deposit */
@@ -197,8 +195,6 @@ class DepositCrudController extends AbstractCrudController
         $entityManager->persist($deposit);
 
         $entityManager->flush();
-
-        $cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
         $this->addFlash('success', 'Deposit "' . $deposit->getName() . '" is completed');
 

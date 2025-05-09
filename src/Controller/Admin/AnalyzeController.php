@@ -9,8 +9,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Contracts\Cache\ItemInterface;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
@@ -21,7 +19,6 @@ class AnalyzeController extends AbstractController
         private readonly ChartBuilderInterface $chartBuilder,
         private readonly CurrencyRepository $currencyRepository,
         private readonly PaymentRepository $paymentRepository,
-        private readonly TagAwareCacheInterface $cache,
     ) {
     }
 
@@ -35,16 +32,16 @@ class AnalyzeController extends AbstractController
         return $this->render('admin/analyze.html.twig', [
             'currencies' => $this->currencyRepository->findAll(),
             'last_month' => $lastMonth,
-            'total_expenses' => $this->getTotalExpensesLastMonth($lastMonth),
-            'tags' => $this->getExpensesByTagLastMonth($lastMonth, $sortBy),
+            'total_expenses' => $this->getTotalExpensesLastMonth(),
+            'tags' => $this->getExpensesByTagLastMonth($sortBy),
             'sort_by' => $sortBy,
-            'expenses_by_tag_chart' => $this->getExpensesByTagLastMonthChart($lastMonth),
+            'expenses_by_tag_chart' => $this->getExpensesByTagLastMonthChart(),
         ]);
     }
 
-    private function getTotalExpensesLastMonth(string $lastMonthKey): float
+    private function getTotalExpensesLastMonth(): float
     {
-        $tags = $this->getExpensesByTagLastMonth($lastMonthKey);
+        $tags = $this->getExpensesByTagLastMonth();
         $total = 0;
 
         foreach ($tags as $tag) {
@@ -54,11 +51,9 @@ class AnalyzeController extends AbstractController
         return $total;
     }
 
-    private function getExpensesByTagLastMonth(string $lastMonthKey, ?string $sortBy = null): array
+    private function getExpensesByTagLastMonth(?string $sortBy = null): array
     {
-        $data = $this->cache->get('Expenses by tag ' . $lastMonthKey, function (ItemInterface $item) {
-            $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
-
+        $data = (function () {
             $dateFrom = new \DateTime('first day of last month');
             $dateTo = new \DateTime('first day of this month');
 
@@ -84,7 +79,7 @@ class AnalyzeController extends AbstractController
             }
 
             return $data;
-        });
+        })();
 
         if ($sortBy) {
             usort($data, fn($a, $b) => $b[$sortBy] <=> $a[$sortBy]);
@@ -115,13 +110,11 @@ class AnalyzeController extends AbstractController
             ->generateUrl();
     }
 
-    private function getExpensesByTagLastMonthChart(string $lastMonthKey): Chart
+    private function getExpensesByTagLastMonthChart(): Chart
     {
-        $data = $this->cache->get('Expenses by tag ' . $lastMonthKey . ' chart', function (ItemInterface $item) use ($lastMonthKey) {
-            $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
-
-            $tags = $this->getExpensesByTagLastMonth($lastMonthKey);
-            $totalExpenses = $this->getTotalExpensesLastMonth($lastMonthKey);
+        $data = (function () {
+            $tags = $this->getExpensesByTagLastMonth();
+            $totalExpenses = $this->getTotalExpensesLastMonth();
 
             $data = array_map(function ($tag) use ($totalExpenses) {
                 return [
@@ -133,7 +126,7 @@ class AnalyzeController extends AbstractController
             usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
 
             return $data;
-        });
+        })();
 
         return $this->getPieChart($data, 'In %');
     }

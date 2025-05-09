@@ -27,16 +27,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Contracts\Cache\ItemInterface;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {
-    public const DASHBOARD_CACHE_TAG = 'dashboard';
-
     private const CHART_MIN_NUMBER_OF_DAYS = 7;
 
     public function __construct(
@@ -47,7 +43,6 @@ class DashboardController extends AbstractDashboardController
         private readonly IncomeRepository $incomeRepository,
         private readonly LoanRepository $loanRepository,
         private readonly PaymentRepository $paymentRepository,
-        private readonly TagAwareCacheInterface $cache,
     ) {
     }
 
@@ -204,10 +199,7 @@ class DashboardController extends AbstractDashboardController
 
     private function getTotalsChart(string $startDay, string $step): Chart
     {
-        $records = $this->cache->get("$startDay +1 $step", function (ItemInterface $item) use ($startDay, $step) {
-            $item->expiresAfter(86400);
-            $item->tag(self::DASHBOARD_CACHE_TAG);
-
+        $records = (function () use ($startDay, $step) {
             $balances = $this->balanceRepository->findAll();
 
             $day = new \DateTime("$startDay 00:00:00");
@@ -230,7 +222,7 @@ class DashboardController extends AbstractDashboardController
             }
 
             return $computedValue;
-        });
+        })();
 
         $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
         $chart->setData([
@@ -256,10 +248,7 @@ class DashboardController extends AbstractDashboardController
 
     private function getMonthDiffChart(): Chart
     {
-        $records = $this->cache->get('months_by_diff', function (ItemInterface $item) {
-            $item->expiresAfter(86400);
-            $item->tag(self::DASHBOARD_CACHE_TAG);
-
+        $records = (function () {
             $balances = $this->balanceRepository->findAll();
 
             $day = new \DateTime('first day of 6 months ago 00:00:00');
@@ -283,7 +272,7 @@ class DashboardController extends AbstractDashboardController
             }
 
             return $computedValue;
-        });
+        })();
 
         $chart = $this->chartBuilder->createChart(Chart::TYPE_BAR);
         $chart->setData([
@@ -309,10 +298,7 @@ class DashboardController extends AbstractDashboardController
 
     private function getAssetsByBalanceChart(): Chart
     {
-        $data = $this->cache->get('Assets by balance', function (ItemInterface $item) {
-            $item->expiresAfter(86400);
-            $item->tag(self::DASHBOARD_CACHE_TAG);
-
+        $data = (function () {
             $balances = $this->balanceRepository->findAll();
             $chart1 = $this->chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
             $chart1->setData([
@@ -334,17 +320,14 @@ class DashboardController extends AbstractDashboardController
             usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
 
             return $data;
-        });
+        })();
 
         return $this->getDoughnutChart($data, 'Assets by balance (in USD)');
     }
 
     private function getAssetsByCurrencyChart(): Chart
     {
-        $data = $this->cache->get('Assets by currency', function (ItemInterface $item) {
-            $item->expiresAfter(86400);
-            $item->tag(self::DASHBOARD_CACHE_TAG);
-
+        $data = (function () {
             $currencies = $this->currencyRepository->findAll();
 
             $data = array_map(function (Currency $currency) {
@@ -364,17 +347,14 @@ class DashboardController extends AbstractDashboardController
             usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
 
             return $data;
-        });
+        })();
 
         return $this->getDoughnutChart($data, 'Assets by currency (in USD)');
     }
 
     private function getExpensesByTagChart(): Chart
     {
-        $data = $this->cache->get('Expenses by tag', function (ItemInterface $item) {
-            $item->expiresAfter(86400);
-            $item->tag(self::DASHBOARD_CACHE_TAG);
-
+        $data = (function () {
             $dateFrom = new \DateTime('first day of this month');
 
             $payments = $this->paymentRepository->findAfterDate($dateFrom);
@@ -411,7 +391,7 @@ class DashboardController extends AbstractDashboardController
             usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
 
             return $data;
-        });
+        })();
 
         return $this->getDoughnutChart($data, 'Expenses this month (in %)');
     }
