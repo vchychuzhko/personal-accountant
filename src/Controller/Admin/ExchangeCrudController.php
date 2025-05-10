@@ -12,9 +12,15 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ExchangeCrudController extends AbstractCrudController
 {
+    public function __construct(
+        private readonly TagAwareCacheInterface $cache,
+    ) {
+    }
+
     public static function getEntityFqcn(): string
     {
         return Exchange::class;
@@ -78,6 +84,8 @@ class ExchangeCrudController extends AbstractCrudController
         $entityManager->persist($balanceFrom);
         $entityManager->persist($balanceTo);
         $entityManager->flush();
+
+        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
         parent::persistEntity($entityManager, $entityInstance);
     }

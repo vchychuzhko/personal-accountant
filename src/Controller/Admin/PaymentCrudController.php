@@ -18,9 +18,15 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class PaymentCrudController extends AbstractCrudController
 {
+    public function __construct(
+        private readonly TagAwareCacheInterface $cache,
+    ) {
+    }
+
     public static function getEntityFqcn(): string
     {
         return Payment::class;
@@ -100,6 +106,8 @@ class PaymentCrudController extends AbstractCrudController
 
         $entityManager->persist($balance);
         $entityManager->flush();
+
+        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
         parent::persistEntity($entityManager, $entityInstance);
     }

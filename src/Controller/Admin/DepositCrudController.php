@@ -34,6 +34,11 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class DepositCrudController extends AbstractCrudController
 {
+    public function __construct(
+        private readonly TagAwareCacheInterface $cache,
+    ) {
+    }
+
     public static function getEntityFqcn(): string
     {
         return Deposit::class;
@@ -110,7 +115,7 @@ class DepositCrudController extends AbstractCrudController
                 ->formatValue(function ($value) {
                     return $value ? PriceUtils::format($value): $value;
                 })
-                ->hideOnForm(),
+                ->onlyOnDetail(),
 
             FormField::addColumn(4),
             FormField::addFieldset(),
@@ -173,7 +178,6 @@ class DepositCrudController extends AbstractCrudController
         AdminContext $adminContext,
         EntityManagerInterface $entityManager,
         Request $request,
-        TagAwareCacheInterface $cache,
         AdminUrlGenerator $adminUrlGenerator,
     ): RedirectResponse {
         /** @var Deposit $deposit */
@@ -198,7 +202,7 @@ class DepositCrudController extends AbstractCrudController
 
         $entityManager->flush();
 
-        $cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
+        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
         $this->addFlash('success', 'Deposit "' . $deposit->getName() . '" is completed');
 
@@ -224,6 +228,8 @@ class DepositCrudController extends AbstractCrudController
 
         $entityManager->persist($balance);
         $entityManager->flush();
+
+        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
         parent::persistEntity($entityManager, $entityInstance);
     }
