@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Exchange;
+use App\Repository\ConfigurationRepository;
 use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -17,6 +18,7 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class ExchangeCrudController extends AbstractCrudController
 {
     public function __construct(
+        private readonly ConfigurationRepository $configurationRepository,
         private readonly TagAwareCacheInterface $cache,
     ) {
     }
@@ -28,6 +30,8 @@ class ExchangeCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
+        $timezone = $this->configurationRepository->getByName('timezone');
+
         return [
             IdField::new('id')
                 ->onlyOnIndex(),
@@ -49,7 +53,11 @@ class ExchangeCrudController extends AbstractCrudController
                 ->setNumDecimals(2)
                 ->hideOnForm(),
             DateTimeField::new('created_at')
-                ->setFormat('dd-MM-yyyy HH:mm'),
+                ->setFormTypeOption('model_timezone', 'UTC')
+                ->setFormTypeOption('view_timezone', $timezone)
+                ->setFormat('dd-MM-yyyy HH:mm')
+                ->setTimezone($timezone)
+                ->setHelp($timezone),
         ];
     }
 

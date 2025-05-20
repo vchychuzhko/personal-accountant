@@ -73,6 +73,7 @@ Panel is available by default at - https://&lt;your-localhost&gt;/admin
 * On Configuration page you can set API key for [Currency API](https://currencyapi.com/) service.
 * Dashboard charts are cacheable and can be refreshed manually on Configuration page.
 * Apps page has deposit calculator and currency converter apps.
+* All dates are stored in UTC. You can set your timezone for frontend representation and form inputs in Configuration.
 
 ### Entities
 
@@ -97,6 +98,8 @@ Panel is available by default at - https://&lt;your-localhost&gt;/admin
 ```bash
 php bin/console app:fix-payment-ids
 ```
+
+*Database backup is recommended before running this command*
 
 ---
 
