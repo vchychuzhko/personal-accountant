@@ -34,17 +34,29 @@ class AnalyzeController extends AbstractController
 
         return $this->render('admin/analyze.html.twig', [
             'currencies' => $this->currencyRepository->findAll(),
-            'last_month' => $lastMonth,
-            'total_expenses' => $this->getTotalExpensesLastMonth($lastMonth),
-            'tags' => $this->getExpensesByTagLastMonth($lastMonth, $sortBy),
             'sort_by' => $sortBy,
-            'expenses_by_tag_chart' => $this->getExpensesByTagLastMonthChart($lastMonth),
+            'months' => [
+                [
+                    'id' => 'this_month',
+                    'title' => 'This Month',
+                    'total_expenses' => $this->getTotalExpensesByMonth('this month'),
+                    'tags' => $this->getExpensesByTagByMonth('this month', $sortBy),
+                    'expenses_by_tag_chart' => $this->getExpensesByTagByMonthChart('this month'),
+                ],
+                [
+                    'id' => 'last_month',
+                    'title' => $lastMonth,
+                    'total_expenses' => $this->getTotalExpensesByMonth($lastMonth),
+                    'tags' => $this->getExpensesByTagByMonth($lastMonth, $sortBy),
+                    'expenses_by_tag_chart' => $this->getExpensesByTagByMonthChart($lastMonth),
+                ],
+            ],
         ]);
     }
 
-    private function getTotalExpensesLastMonth(string $lastMonthKey): float
+    private function getTotalExpensesByMonth(string $monthKey): float
     {
-        $tags = $this->getExpensesByTagLastMonth($lastMonthKey);
+        $tags = $this->getExpensesByTagByMonth($monthKey);
         $total = 0;
 
         foreach ($tags as $tag) {
@@ -54,13 +66,14 @@ class AnalyzeController extends AbstractController
         return $total;
     }
 
-    private function getExpensesByTagLastMonth(string $lastMonthKey, ?string $sortBy = null): array
+    private function getExpensesByTagByMonth(string $monthKey, ?string $sortBy = null): array
     {
-        $data = $this->cache->get('Expenses by tag ' . $lastMonthKey, function (ItemInterface $item) {
+        $data = $this->cache->get('Expenses by tag ' . $monthKey, function (ItemInterface $item) use ($monthKey) {
             $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
 
-            $dateFrom = new \DateTime('first day of last month');
-            $dateTo = new \DateTime('first day of this month');
+            $dateFrom = new \DateTime('first day of ' . $monthKey);
+            $dateTo = clone $dateFrom;
+            $dateTo = $dateTo->modify('+1 month');
 
             $payments = $this->paymentRepository->findBetweenDates($dateFrom, $dateTo);
             $data = [];
@@ -115,13 +128,13 @@ class AnalyzeController extends AbstractController
             ->generateUrl();
     }
 
-    private function getExpensesByTagLastMonthChart(string $lastMonthKey): Chart
+    private function getExpensesByTagByMonthChart(string $monthKey): Chart
     {
-        $data = $this->cache->get('Expenses by tag ' . $lastMonthKey . ' chart', function (ItemInterface $item) use ($lastMonthKey) {
+        $data = $this->cache->get('Expenses by tag ' . $monthKey . ' chart', function (ItemInterface $item) use ($monthKey) {
             $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
 
-            $tags = $this->getExpensesByTagLastMonth($lastMonthKey);
-            $totalExpenses = $this->getTotalExpensesLastMonth($lastMonthKey);
+            $tags = $this->getExpensesByTagByMonth($monthKey);
+            $totalExpenses = $this->getTotalExpensesByMonth($monthKey);
 
             $data = array_map(function ($tag) use ($totalExpenses) {
                 return [
@@ -135,12 +148,12 @@ class AnalyzeController extends AbstractController
             return $data;
         });
 
-        return $this->getPieChart($data, 'In %');
+        return $this->getDoughnutChart($data, 'In %');
     }
 
-    private function getPieChart(array $data, string $title): Chart
+    private function getDoughnutChart(array $data, string $title): Chart
     {
-        $chart = $this->chartBuilder->createChart(Chart::TYPE_PIE);
+        $chart = $this->chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
         $chart->setData([
             'labels' => array_map(fn ($item) => $item['label'], $data),
             'datasets' => [

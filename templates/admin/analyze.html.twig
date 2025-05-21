@@ -4,8 +4,23 @@
 
 {% block page_actions %}
 <select
-    class="form-select"
-    aria-label="Select Currency"
+    class="form-select w-auto me-2"
+    aria-label="Month"
+    {{ stimulus_controller('analyze_month') }}
+    {{ stimulus_action('analyze_month', 'change', 'change') }}
+>
+    {% for index, month in months %}
+        <option
+            value="{{ month.id }}"
+            {{ index == 0 ? 'selected' : '' }}
+        >
+            {{ month.title }}
+        </option>
+    {% endfor %}
+</select>
+<select
+    class="form-select w-auto"
+    aria-label="Currency"
     {{ stimulus_controller('analyze_currency') }}
     {{ stimulus_action('analyze_currency', 'change', 'change') }}
 >
@@ -23,62 +38,69 @@
 {% endblock %}
 
 {% block main %}
-<div class="row row-gap-3">
-    <div class="col-md-4">
-        <h2>
-            Expenses:
-            <span data-price="{{ total_expenses }}">
-                {{ total_expenses | price }}
-            </span>
-        </h2>
-        <p class="text-secondary">{{ last_month }}</p>
-        <div class="row">
-            <div class="col-12">{{ render_chart(expenses_by_tag_chart) }}</div>
+<div class="tab-content">
+    {% for index, month in months %}
+        <div class="tab-pane{% if index == 0 %} show active{% endif %}" id="{{ month.id }}" role="tabpanel">
+            <div class="row row-gap-3">
+                <div class="col-md-4">
+                    <h2>
+                        Expenses:
+                        <span data-price="{{ month.total_expenses }}">{{ month.total_expenses | price }}</span>
+                    </h2>
+                    <div class="row">
+                        <div class="col-12">{{ render_chart(month.expenses_by_tag_chart) }}</div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <table class="table datagrid">
+                        <thead>
+                        <tr>
+                            <th data-column="id"><span>ID</span></th>
+                            <th data-column="name"><span>Name</span></th>
+                            <th class="{{ sort_by == 'payments' ? 'sorted' : '' }}" data-column="payments">
+                                <a href="{{ ea_url().set('sort', 'payments') }}">
+                                    Payments
+                                    <twig:ea:Icon name="{{ sort_by == 'payments' ? 'internal:sort-arrow-down' : 'internal:sort-arrows' }}" />
+                                </a>
+                            </th>
+                            <th class="{{ sort_by == 'total' ? 'sorted' : '' }}" data-column="total">
+                                <a href="{{ ea_url().set('sort', 'total') }}">
+                                    Total
+                                    <twig:ea:Icon name="{{ sort_by == 'total' ? 'internal:sort-arrow-down' : 'internal:sort-arrows' }}" />
+                                </a>
+                            </th>
+                            <th>
+                                <span class="visually-hidden">Actions</span>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for tag in month.tags %}
+                            <tr>
+                                <td data-column="id" data-label="ID">{{ tag.id }}</td>
+                                <td data-column="name" data-label="Name">{{ tag.name }}</td>
+                                <td data-column="payments" data-label="Payments">
+                                    <a href="{{ tag.payments_url }}">{{ tag.payments | length }} payment(s)</a>
+                                </td>
+                                <td data-column="total" data-label="Total" data-price="{{ tag.total }}">
+                                    {{ tag.total | price }}
+                                </td>
+                                <td class="actions">
+                                    <a href="{{ ea_url()
+                                        .setController('App\\Controller\\Admin\\TagCrudController')
+                                        .setAction('detail')
+                                        .setEntityId(tag.id)
+                                    }}">
+                                        Show
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="col-md-8">
-        <table class="table datagrid">
-            <thead>
-            <tr>
-                <th data-column="id"><span>ID</span></th>
-                <th data-column="name"><span>Name</span></th>
-                <th class="{{ sort_by == 'payments' ? 'sorted' : '' }}" data-column="payments">
-                    <a href="{{ ea_url().set('sort', 'payments') }}">
-                        Payments
-                        <twig:ea:Icon name="{{ sort_by == 'payments' ? 'internal:sort-arrow-down' : 'internal:sort-arrows' }}" />
-                    </a>
-                </th>
-                <th class="{{ sort_by == 'total' ? 'sorted' : '' }}" data-column="total">
-                    <a href="{{ ea_url().set('sort', 'total') }}">
-                        Total
-                        <twig:ea:Icon name="{{ sort_by == 'total' ? 'internal:sort-arrow-down' : 'internal:sort-arrows' }}" />
-                    </a>
-                </th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for tag in tags %}
-                <tr>
-                    <td data-column="id" data-label="ID">
-                        <a href="{{ ea_url()
-                            .setController('App\\Controller\\Admin\\TagCrudController')
-                            .setAction('detail')
-                            .setEntityId(tag.id)
-                        }}">
-                            {{ tag.id }}
-                        </a>
-                    </td>
-                    <td data-column="name" data-label="Name">{{ tag.name }}</td>
-                    <td data-column="payments" data-label="Payments">
-                        <a href="{{ tag.payments_url }}">{{ tag.payments | length }} payment(s)</a>
-                    </td>
-                    <td data-column="total" data-label="Total" data-price="{{ tag.total }}">
-                        {{ tag.total | price }}
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    {% endfor %}
 </div>
 {% endblock %}

@@ -9,7 +9,7 @@
             {% for index, chart in main_charts %}
                 <li class="nav-item">
                     <button
-                        class="nav-link{% if index is same as(0) %} active{% endif %}"
+                        class="nav-link{% if index == 0 %} active{% endif %}"
                         data-bs-toggle="tab" data-bs-target="#{{ chart.id }}" role="tab"
                     >
                         {{ chart.title }}
@@ -19,7 +19,7 @@
         </ul>
         <div class="tab-content">
             {% for index, chart in main_charts %}
-                <div class="tab-pane{% if index is same as(0) %} show active{% endif %}" id="{{ chart.id }}" role="tabpanel">
+                <div class="tab-pane{% if index == 0 %} show active{% endif %}" id="{{ chart.id }}" role="tabpanel">
                     {{ render_chart(chart.chart) }}
                 </div>
             {% endfor %}
