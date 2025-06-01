@@ -30,6 +30,7 @@ class AnalyzeController extends AbstractController
     {
         $sortBy = $request->get('sort', 'total');
 
+        $thisMonth = (new \DateTime('first day of this month'))->format('F Y');
         $lastMonth = (new \DateTime('first day of last month'))->format('F Y');
 
         return $this->render('admin/analyze.html.twig', [
@@ -39,9 +40,9 @@ class AnalyzeController extends AbstractController
                 [
                     'id' => 'this_month',
                     'title' => 'This Month',
-                    'total_expenses' => $this->getTotalExpensesByMonth('this month'),
-                    'tags' => $this->getExpensesByTagByMonth('this month', $sortBy),
-                    'expenses_by_tag_chart' => $this->getExpensesByTagByMonthChart('this month'),
+                    'total_expenses' => $this->getTotalExpensesByMonth($thisMonth),
+                    'tags' => $this->getExpensesByTagByMonth($thisMonth, $sortBy),
+                    'expenses_by_tag_chart' => $this->getExpensesByTagByMonthChart($thisMonth),
                 ],
                 [
                     'id' => 'last_month',
