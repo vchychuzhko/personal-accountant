@@ -18,6 +18,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class CurrencyCrudController extends AbstractCrudController
@@ -74,7 +75,8 @@ class CurrencyCrudController extends AbstractCrudController
     public function updateRates(
         EntityManagerInterface $entityManager,
         HttpClientInterface $client,
-        AdminUrlGenerator $adminUrlGenerator
+        AdminUrlGenerator $adminUrlGenerator,
+        TagAwareCacheInterface $cache
     ): RedirectResponse {
         /** @var ConfigurationRepository $configRepository */
         $configRepository = $entityManager->getRepository(Configuration::class);
@@ -109,6 +111,8 @@ class CurrencyCrudController extends AbstractCrudController
         }
 
         $entityManager->flush();
+
+        $cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
         $this->addFlash('success', 'Rates are successfully updated');
 
