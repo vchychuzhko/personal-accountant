@@ -30,8 +30,8 @@ class AnalyzeController extends AbstractController
     {
         $sortBy = $request->get('sort', 'total');
 
-        $thisMonth = (new \DateTime('first day of this month'))->format('F Y');
-        $lastMonth = (new \DateTime('first day of last month'))->format('F Y');
+        $thisMonth = (new \DateTime('first day of this month 00:00:00'))->format('F Y');
+        $lastMonth = (new \DateTime('first day of last month 00:00:00'))->format('F Y');
 
         return $this->render('admin/analyze.html.twig', [
             'currencies' => $this->currencyRepository->findAll(),
@@ -72,7 +72,7 @@ class AnalyzeController extends AbstractController
         $data = $this->cache->get('Expenses by tag ' . $monthKey, function (ItemInterface $item) use ($monthKey) {
             $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
 
-            $dateFrom = new \DateTime('first day of ' . $monthKey);
+            $dateFrom = new \DateTime("first day of $monthKey 00:00:00");
             $dateTo = clone $dateFrom;
             $dateTo = $dateTo->modify('+1 month');
 

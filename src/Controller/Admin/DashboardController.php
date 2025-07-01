@@ -375,7 +375,7 @@ class DashboardController extends AbstractDashboardController
             $item->expiresAfter(86400);
             $item->tag(self::DASHBOARD_CACHE_TAG);
 
-            $dateFrom = new \DateTime('first day of this month');
+            $dateFrom = new \DateTime('first day of 6 months ago 00:00:00');
 
             $payments = $this->paymentRepository->findAfterDate($dateFrom);
             $totalExpenses = 0;
@@ -413,7 +413,7 @@ class DashboardController extends AbstractDashboardController
             return $data;
         });
 
-        return $this->getDoughnutChart($data, 'Expenses this month (in %)');
+        return $this->getDoughnutChart($data, 'Expenses last 6 months (in %)');
     }
 
     private function getDoughnutChart(array $data, string $title): Chart
