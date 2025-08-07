@@ -2,6 +2,36 @@
 
 {% block page_title %}Analyze{% endblock %}
 
+{% block head_stylesheets %}
+{{ parent() }}
+<style>
+.table tr:has(a[aria-expanded="true"]) {
+    box-shadow: -2px 0 0 var(--color-primary);
+}
+a[aria-expanded="false"] .hide {
+    display: none;
+}
+a[aria-expanded="true"] .show {
+    display: none;
+}
+a[aria-expanded="true"] .hide {
+    display: inline;
+}
+.collapsing {
+    transition: none;
+}
+.collapse:not(.show) {
+    display: none !important;
+}
+.collapse.show {
+    box-shadow: -2px 0 0 var(--color-primary);
+}
+.collapse table tr:last-of-type {
+    margin-bottom: 0;
+}
+</style>
+{% endblock %}
+
 {% block page_actions %}
 <select
     class="form-select w-auto me-2"
@@ -61,7 +91,6 @@
                     <table class="table datagrid">
                         <thead>
                         <tr>
-                            <th data-column="id"><span>ID</span></th>
                             <th data-column="name"><span>Name</span></th>
                             <th class="{{ sort_by == 'payments' ? 'sorted' : '' }}" data-column="payments">
                                 <a href="{{ ea_url().set('sort', 'payments') }}">
@@ -82,8 +111,8 @@
                         </thead>
                         <tbody>
                         {% for tag in month.tags %}
+                            {% set tagCollapsibleId = month.id ~ '_' ~ tag.name | lower %}
                             <tr>
-                                <td data-column="id" data-label="ID">{{ tag.id }}</td>
                                 <td data-column="name" data-label="Name">{{ tag.name }}</td>
                                 <td data-column="payments" data-label="Payments">
                                     <a href="{{ tag.payments_url }}">{{ tag.payments | length }} payment(s)</a>
@@ -92,13 +121,57 @@
                                     {{ tag.total | price }}
                                 </td>
                                 <td class="actions">
-                                    <a href="{{ ea_url()
-                                        .setController('App\\Controller\\Admin\\TagCrudController')
-                                        .setAction('detail')
-                                        .setEntityId(tag.id)
-                                    }}">
-                                        Show
+                                    <a
+                                        data-bs-toggle="collapse"
+                                        href="#{{ tagCollapsibleId }}"
+                                        role="button"
+                                        aria-expanded="false"
+                                        aria-controls="{{ tagCollapsibleId }}"
+                                    >
+                                        <span class="show">Expand</span>
+                                        <span class="hide text-danger">Hide</span>
                                     </a>
+                                </td>
+                            </tr>
+                            <tr class="collapse" id="{{ tagCollapsibleId }}">
+                                <td data-label="Payments" colspan="5">
+                                    <table class="table datagrid">
+                                        <thead>
+                                        <tr>
+                                            <th data-column="name"><span>Name</span></th>
+                                            <th data-column="balance"><span>Balance</span></th>
+                                            <th class="sorted" data-column="Amount">
+                                                <span>
+                                                    Amount
+                                                    <twig:ea:Icon name="internal:sort-arrow-down" />
+                                                </span>
+                                            </th>
+                                            <th data-column="created_at"><span>Created At</span></th>
+                                            <th>
+                                                <span class="visually-hidden">Actions</span>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="shadow-none">
+                                        {% for payment in tag.payments %}
+                                            <tr>
+                                                <td data-label="Name">{{ payment.name }}</td>
+                                                <td data-label="Balance">{{ payment.balance }}</td>
+                                                <td data-label="Amount" data-price="{{ payment.amountInUsd }}">{{ payment.amountInUsd | price }}</td>
+                                                <td data-label="Created At"><time datetime="{{ payment.createdAt|date('c') }}" title="{{ payment.createdAt|date('r') }}">{{ payment.createdAt|date('d-m-Y H:i') }}</time></td>
+                                                <td class="actions">
+                                                    <a href="{{ ea_url()
+                                                        .setController('App\\Controller\\Admin\\PaymentCrudController')
+                                                        .setAction('detail')
+                                                        .setEntityId(payment.id)
+                                                    }}">
+                                                        Show
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
                                 </td>
                             </tr>
                         {% endfor %}

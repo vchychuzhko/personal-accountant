@@ -128,6 +128,10 @@ class AnalyzeController extends AbstractController
             usort($data, fn($a, $b) => $b[$sortBy] <=> $a[$sortBy]);
         }
 
+        foreach ($data as &$tag) {
+            usort($tag['payments'], fn($a, $b) => $b->getAmountInUsd() <=> $a->getAmountInUsd());
+        }
+
         return $data;
     }
 
