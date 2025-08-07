@@ -47,6 +47,12 @@
                         Expenses:
                         <span data-price="{{ month.total_expenses }}">{{ month.total_expenses | price }}</span>
                     </h2>
+                    <h4>
+                        <a href="{{ month.payments_url }}">
+                            Payments:
+                            <span>{{ month.payments_count }}</span>
+                        </a>
+                    </h4>
                     <div class="row">
                         <div class="col-12">{{ render_chart(month.expenses_by_tag_chart) }}</div>
                     </div>

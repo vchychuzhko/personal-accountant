@@ -41,6 +41,8 @@ class AnalyzeController extends AbstractController
                     'id' => 'this_month',
                     'title' => 'This Month',
                     'total_expenses' => $this->getTotalExpensesByMonth($thisMonth),
+                    'payments_count' => $this->getPaymentsCount($thisMonth),
+                    'payments_url' => $this->getPaymentsUrlByMonth($thisMonth),
                     'tags' => $this->getExpensesByTagByMonth($thisMonth, $sortBy),
                     'expenses_by_tag_chart' => $this->getExpensesByTagByMonthChart($thisMonth),
                 ],
@@ -48,6 +50,8 @@ class AnalyzeController extends AbstractController
                     'id' => 'last_month',
                     'title' => $lastMonth,
                     'total_expenses' => $this->getTotalExpensesByMonth($lastMonth),
+                    'payments_count' => $this->getPaymentsCount($lastMonth),
+                    'payments_url' => $this->getPaymentsUrlByMonth($lastMonth),
                     'tags' => $this->getExpensesByTagByMonth($lastMonth, $sortBy),
                     'expenses_by_tag_chart' => $this->getExpensesByTagByMonthChart($lastMonth),
                 ],
@@ -65,6 +69,26 @@ class AnalyzeController extends AbstractController
         }
 
         return $total;
+    }
+
+    private function getPaymentsCount(string $monthKey): int
+    {
+        $dateFrom = new \DateTime("first day of $monthKey 00:00:00");
+        $dateTo = clone $dateFrom;
+        $dateTo = $dateTo->modify('+1 month');
+
+        $payments = $this->paymentRepository->findBetweenDates($dateFrom, $dateTo);
+
+        return count($payments);
+    }
+
+    private function getPaymentsUrlByMonth(string $monthKey): string
+    {
+        $dateFrom = new \DateTime("first day of $monthKey 00:00:00");
+        $dateTo = clone $dateFrom;
+        $dateTo = $dateTo->modify('+1 month');
+
+        return $this->getPaymentsUrlByTagAndCreatedAt($dateFrom, $dateTo);
     }
 
     private function getExpensesByTagByMonth(string $monthKey, ?string $sortBy = null): array
@@ -88,7 +112,7 @@ class AnalyzeController extends AbstractController
                         'id' => $tagId,
                         'name' => $tag->getName(),
                         'payments' => [],
-                        'payments_url' => $this->getPaymentsByTagAndCreatedAtUrl($tagId, $dateFrom, $dateTo),
+                        'payments_url' => $this->getPaymentsUrlByTagAndCreatedAt($dateFrom, $dateTo, $tagId),
                         'total' => 0,
                     ];
                 }
@@ -107,13 +131,11 @@ class AnalyzeController extends AbstractController
         return $data;
     }
 
-    private function getPaymentsByTagAndCreatedAtUrl(int $tagId, \DateTime $dateFrom, \DateTime $dateTo): string
+    private function getPaymentsUrlByTagAndCreatedAt(\DateTime $dateFrom, \DateTime $dateTo, int $tagId = null): string
     {
-        return $this->adminUrlGenerator
+        $url = $this->adminUrlGenerator
             ->setController(PaymentCrudController::class)
             ->setAction('index')
-            ->set('filters[tag][comparison]', '=')
-            ->set('filters[tag][value]', $tagId)
             ->set('filters[created_at][comparison]', 'between')
             ->set('filters[created_at][value][date][month]', $dateFrom->format('n'))
             ->set('filters[created_at][value][date][day]', 1)
@@ -126,7 +148,14 @@ class AnalyzeController extends AbstractController
             ->set('filters[created_at][value2][time][hour]', 0)
             ->set('filters[created_at][value2][time][minute]', 0)
             ->set('sort[amount_in_usd]', 'DESC')
-            ->generateUrl();
+        ;
+
+        if ($tagId) {
+            $url->set('filters[tag][comparison]', '=')
+                ->set('filters[tag][value]', $tagId);
+        }
+
+        return $url->generateUrl();
     }
 
     private function getExpensesByTagByMonthChart(string $monthKey): Chart
