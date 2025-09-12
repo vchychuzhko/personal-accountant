@@ -5,17 +5,12 @@
 {% block head_stylesheets %}
 {{ parent() }}
 <style>
-.table tr:has(a[aria-expanded="true"]) {
-    box-shadow: -2px 0 0 var(--color-primary);
+a[aria-expanded="false"] .icon {
+    transform: rotate(-90deg);
+    display: inline-block;
 }
-a[aria-expanded="false"] .hide {
-    display: none;
-}
-a[aria-expanded="true"] .show {
-    display: none;
-}
-a[aria-expanded="true"] .hide {
-    display: inline;
+a[aria-expanded="true"] .icon {
+    transform: rotate(90deg);
 }
 .collapsing {
     transition: none;
@@ -128,8 +123,7 @@ a[aria-expanded="true"] .hide {
                                         aria-expanded="false"
                                         aria-controls="{{ tagCollapsibleId }}"
                                     >
-                                        <span class="show">Expand</span>
-                                        <span class="hide text-danger">Hide</span>
+                                        <twig:ea:Icon name="internal:chevron-left" />
                                     </a>
                                 </td>
                             </tr>

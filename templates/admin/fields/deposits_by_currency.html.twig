@@ -4,7 +4,20 @@
 {% if (field.value is empty) %}
     <span>-</span>
 {% elseif (ea.crud.currentAction == 'index') %}
-    <span>{{ field.value | length }} deposit(s)</span>
+    {% set balanceIds = [] %}
+    {% for balance in entity.instance.balances %}
+        {% set balanceIds = balanceIds|merge([balance.id]) %}
+    {% endfor %}
+    <a href="{{ ea_url()
+        .setController('App\\Controller\\Admin\\DepositCrudController')
+        .setAction('index')
+        .set('filters[balance][value]', balanceIds)
+        .set('filters[balance][comparison]', '=')
+        .set('filters[status][value]', 0)
+        .set('filters[status][comparison]', '=')
+    }}">
+        {{ field.value | length }} deposit(s)
+    </a>
 {% else %}
     <ul class="ps-3 mb-0">
         {% for deposit in field.value %}
