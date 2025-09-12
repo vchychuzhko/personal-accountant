@@ -10,6 +10,7 @@
         {% for deposit in field.value %}
             <li>
                 <a href="{{ ea_url()
+                    .unsetAll()
                     .setController('App\\Controller\\Admin\\DepositCrudController')
                     .setAction('detail')
                     .setEntityId(deposit.id)

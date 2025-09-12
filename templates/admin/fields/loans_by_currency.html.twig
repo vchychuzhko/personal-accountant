@@ -5,6 +5,7 @@
     <span>-</span>
 {% elseif (ea.crud.currentAction == 'index') %}
     <a href="{{ ea_url()
+        .unsetAll()
         .setController('App\\Controller\\Admin\\LoanCrudController')
         .setAction('index')
         .set('filters[currency][value]', entity.primaryKeyValue)
@@ -17,6 +18,7 @@
         {% for loan in field.value %}
             <li>
                 <a href="{{ ea_url()
+                    .unsetAll()
                     .setController('App\\Controller\\Admin\\LoanCrudController')
                     .setAction('detail')
                     .setEntityId(loan.id)

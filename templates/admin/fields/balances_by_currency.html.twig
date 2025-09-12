@@ -5,6 +5,7 @@
     <span>-</span>
 {% elseif (ea.crud.currentAction == 'index') %}
     <a href="{{ ea_url()
+        .unsetAll()
         .setController('App\\Controller\\Admin\\BalanceCrudController')
         .setAction('index')
         .set('filters[currency][value]', entity.primaryKeyValue)
@@ -17,6 +18,7 @@
         {% for balance in field.value %}
             <li>
                 <a href="{{ ea_url()
+                    .unsetAll()
                     .setController('App\\Controller\\Admin\\BalanceCrudController')
                     .setAction('detail')
                     .setEntityId(balance.id)

@@ -161,6 +161,7 @@ a[aria-expanded="true"] .hide {
                                                 <td data-label="Created At"><time datetime="{{ payment.createdAt|date('c') }}" title="{{ payment.createdAt|date('r') }}">{{ payment.createdAt|date('d-m-Y H:i') }}</time></td>
                                                 <td class="actions">
                                                     <a href="{{ ea_url()
+                                                        .unsetAll()
                                                         .setController('App\\Controller\\Admin\\PaymentCrudController')
                                                         .setAction('detail')
                                                         .setEntityId(payment.id)

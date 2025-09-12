@@ -5,6 +5,7 @@
     <span>-</span>
 {% else %}
     <a href="{{ ea_url()
+        .unsetAll()
         .setController('App\\Controller\\Admin\\IncomeCrudController')
         .setAction('index')
         .set('filters[balance][value]', entity.primaryKeyValue)
