@@ -65,7 +65,7 @@ class LoanCrudController extends AbstractCrudController
                 ->setSortable(true)
                 ->hideOnForm(),
             DateField::new('created_at')
-                ->setFormat('dd-MM-yyyy'),
+                ->setFormat('dd.MM.yyyy'),
         ];
     }
 

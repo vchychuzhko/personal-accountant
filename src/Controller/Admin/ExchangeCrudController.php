@@ -55,7 +55,7 @@ class ExchangeCrudController extends AbstractCrudController
             DateTimeField::new('created_at')
                 ->setFormTypeOption('model_timezone', 'UTC')
                 ->setFormTypeOption('view_timezone', $timezone)
-                ->setFormat('dd-MM-yyyy HH:mm')
+                ->setFormat('dd.MM.yyyy HH:mm')
                 ->setTimezone($timezone)
                 ->setHelp($timezone),
         ];

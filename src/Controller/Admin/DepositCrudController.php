@@ -139,10 +139,10 @@ class DepositCrudController extends AbstractCrudController
                 ->setHelp('Number of months')
                 ->hideOnIndex(),
             DateField::new('start_date')
-                ->setFormat('dd-MM-yyyy')
+                ->setFormat('dd.MM.yyyy')
                 ->hideOnIndex(),
             DateField::new('end_date')
-                ->setFormat('dd-MM-yyyy'),
+                ->setFormat('dd.MM.yyyy'),
         ];
     }
 
