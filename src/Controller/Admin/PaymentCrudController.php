@@ -10,8 +10,11 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
@@ -28,6 +31,7 @@ class PaymentCrudController extends AbstractCrudController
     public function __construct(
         private readonly ConfigurationRepository $configurationRepository,
         private readonly TagAwareCacheInterface $cache,
+        private readonly AdminUrlGenerator $adminUrlGenerator
     ) {
     }
 
@@ -117,6 +121,39 @@ class PaymentCrudController extends AbstractCrudController
         return $crud
             ->setDefaultSort(['created_at' => 'DESC'])
         ;
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        $duplicate = Action::new('duplicate')
+            ->setIcon('fa fa-copy')
+            ->linkToUrl(
+                fn(Payment $entity) => $this->adminUrlGenerator
+                    ->setAction(Action::EDIT)
+                    ->setEntityId($entity->getId())
+                    ->set('duplicate', '1')
+                    ->generateUrl()
+            );
+
+        return parent::configureActions($actions)
+            ->add(Crud::PAGE_DETAIL, $duplicate)
+        ;
+    }
+
+    /**
+     * @see https://github.com/EasyCorp/EasyAdminBundle/issues/3937#issuecomment-1255896369
+     */
+    public function edit(AdminContext $context)
+    {
+        if ($context->getRequest()->query->has('duplicate')) {
+            /** @var Payment $entity */
+            $entity = $context->getEntity()->getInstance();
+            $cloned = clone $entity;
+            $cloned->setCreatedAt(new \DateTimeImmutable('now'));
+            $context->getEntity()->setInstance($cloned);
+        }
+
+        return parent::edit($context);
     }
 
     /**
