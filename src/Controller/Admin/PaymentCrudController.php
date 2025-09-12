@@ -6,6 +6,7 @@ use App\Entity\Payment;
 use App\Repository\ConfigurationRepository;
 use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
@@ -19,6 +20,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class PaymentCrudController extends AbstractCrudController
@@ -65,7 +67,21 @@ class PaymentCrudController extends AbstractCrudController
                 ->onlyOnIndex(),
             TextField::new('name'),
             AssociationField::new('tag'),
-            AssociationField::new('balance'),
+            AssociationField::new('balance')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) {
+                        $dateFrom = new \DateTime('first day of this month 00:00:00');
+                        $dateTo = new \DateTime('first day of next month 00:00:00');
+
+                        return $repository->createQueryBuilder('b')
+                            ->leftJoin('b.payments', 'p', 'WITH', 'p.created_at BETWEEN :from AND :to')
+                            ->setParameter('from', $dateFrom)
+                            ->setParameter('to', $dateTo)
+                            ->groupBy('b.id')
+                            ->orderBy('COUNT(p.id)', 'DESC')
+                        ;
+                    },
+                ]),
             NumberField::new('amount')
                 ->formatValue(function ($value, Payment $entity) {
                     $currency = $entity->getBalance()->getCurrency();
@@ -81,7 +97,7 @@ class PaymentCrudController extends AbstractCrudController
             DateTimeField::new('created_at')
                 ->setFormTypeOption('model_timezone', 'UTC')
                 ->setFormTypeOption('view_timezone', $timezone)
-                ->setFormat('dd-MM-yyyy HH:mm')
+                ->setFormat('dd.MM.yyyy HH:mm')
                 ->setTimezone($timezone)
                 ->setHelp($timezone),
         ];
@@ -92,13 +108,15 @@ class PaymentCrudController extends AbstractCrudController
         return $filters
             ->add('balance')
             ->add('tag')
-            ->add('created_at');
+            ->add('created_at')
+        ;
     }
 
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setDefaultSort(['created_at' => 'DESC']);
+            ->setDefaultSort(['created_at' => 'DESC'])
+        ;
     }
 
     /**
