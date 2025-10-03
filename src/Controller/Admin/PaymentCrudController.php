@@ -142,6 +142,7 @@ class PaymentCrudController extends AbstractCrudController
 
     /**
      * @see https://github.com/EasyCorp/EasyAdminBundle/issues/3937#issuecomment-1255896369
+     * @see self::udpateEntity()
      */
     public function edit(AdminContext $context)
     {
@@ -161,7 +162,31 @@ class PaymentCrudController extends AbstractCrudController
      * @param Payment $entityInstance
      * @return void
      */
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        $uow = $entityManager->getUnitOfWork();
+
+        // Check if the edited entity is a duplicate
+        if (!$uow->isInIdentityMap($entityInstance)) {
+            $this->updateBalance($entityManager, $entityInstance);
+        }
+
+        parent::updateEntity($entityManager, $entityInstance);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Payment $entityInstance
+     * @return void
+     */
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        $this->updateBalance($entityManager, $entityInstance);
+
+        parent::persistEntity($entityManager, $entityInstance);
+    }
+
+    private function updateBalance(EntityManagerInterface $entityManager, Payment $entityInstance): void
     {
         $balance = $entityInstance->getBalance();
 
@@ -171,7 +196,5 @@ class PaymentCrudController extends AbstractCrudController
         $entityManager->flush();
 
         $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
-
-        parent::persistEntity($entityManager, $entityInstance);
     }
 }
