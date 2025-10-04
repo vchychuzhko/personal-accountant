@@ -93,8 +93,8 @@ class CurrencyCrudController extends AbstractCrudController
         $currencies = $currencyRepository->findNonUsd();
 
         $url = self::CURRENCY_API_LATEST_ENDPOINT
-            . '?currencies=' . join(',', array_map(fn (Currency $currency) => $currency->getCode(), $currencies))
-            . '&apikey=' . $configRepository->getByName('currency_api/key');
+            . '?currencies=' . join(',', array_map(fn(Currency $currency) => $currency->getCode(), $currencies))
+            . '&apikey=' . $apiKey;
 
         $response = $client->request('GET', $url);
 
