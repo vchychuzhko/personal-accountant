@@ -1,0 +1,38 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
+{# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
+{% if (field.value.count == 0) %}
+    <span>-</span>
+{% else %}
+    <table class="table datagrid">
+        <thead>
+        <tr>
+            <th data-column="name"><span>Name</span></th>
+            <th data-column="amount">Amount</th>
+            <th data-column="created_at">Created At</th>
+            <th><span class="visually-hidden">Actions</span></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for payment in field.value %}
+            <tr>
+                <td data-column="name" data-label="Name">{{ payment.name }}</td>
+                <td data-column="amount" data-label="Amount">{{ payment.amount | price }}</td>
+                <td data-column="created_at" data-label="Created At">
+                    <time datetime="{{ payment.createdAt|date('c') }}" title="{{ payment.createdAt|date('r') }}">{{ payment.createdAt|date('d.m.Y H:i') }}</time>
+                </td>
+                <td class="actions">
+                    <a href="{{ ea_url()
+                        .unsetAll()
+                        .setController('App\\Controller\\Admin\\PaymentCrudController')
+                        .setAction('detail')
+                        .setEntityId(payment.id)
+                    }}">
+                        Show
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}

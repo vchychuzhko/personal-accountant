@@ -163,7 +163,7 @@ class DepositCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setDefaultSort(['id' => 'DESC']);
+            ->setDefaultSort(['end_date' => 'DESC']);
     }
 
     public function configureActions(Actions $actions): Actions

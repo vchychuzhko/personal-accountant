@@ -8,6 +8,7 @@ use App\Entity\Currency;
 use App\Entity\Deposit;
 use App\Entity\Exchange;
 use App\Entity\Income;
+use App\Entity\Investment;
 use App\Entity\Loan;
 use App\Entity\Tag;
 use App\Entity\Payment;
@@ -15,6 +16,7 @@ use App\Repository\BalanceRepository;
 use App\Repository\CurrencyRepository;
 use App\Repository\DepositRepository;
 use App\Repository\IncomeRepository;
+use App\Repository\InvestmentRepository;
 use App\Repository\LoanRepository;
 use App\Repository\PaymentRepository;
 use App\Utils\PriceUtils;
@@ -45,6 +47,7 @@ class DashboardController extends AbstractDashboardController
         private readonly ChartBuilderInterface $chartBuilder,
         private readonly DepositRepository $depositRepository,
         private readonly IncomeRepository $incomeRepository,
+        private readonly InvestmentRepository $investmentRepository,
         private readonly LoanRepository $loanRepository,
         private readonly PaymentRepository $paymentRepository,
         private readonly TagAwareCacheInterface $cache,
@@ -62,6 +65,7 @@ class DashboardController extends AbstractDashboardController
             'expenses_this_month' => PriceUtils::format($expensesThisMonth),
             'diff_this_month' => PriceUtils::format($incomesThisMonth - $expensesThisMonth),
             'total_in_deposits' => PriceUtils::format($this->getTotalInDeposits()),
+            'total_in_investments' => PriceUtils::format($this->getTotalInInvestments()),
             'total_in_loans' => PriceUtils::format($this->getTotalInLoans()),
             'main_charts' => [
                 [
@@ -106,10 +110,14 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Payment', 'fas fa-money-bill', Payment::class);
         yield MenuItem::linkToCrud('Exchange', 'fas fa-money-bill-transfer', Exchange::class);
         yield MenuItem::section('Savings');
-        yield MenuItem::linkToCrud('Deposit', 'fas fa-percent', Deposit::class);
+        yield MenuItem::linkToCrud('Deposit', 'fas fa-percent', Deposit::class)
+            ->setQueryParameter('filters[status][comparison]', '=')
+            ->setQueryParameter('filters[status][value]', Deposit::STATUS_ACTIVE);
+        yield MenuItem::linkToCrud('Investment', 'fas fa-arrow-trend-up', Investment::class);
         yield MenuItem::linkToCrud('Loan', 'fas fa-sack-dollar', Loan::class);
-        yield MenuItem::linkToCrud('Tag', 'fas fa-tag', Tag::class);
+        yield MenuItem::section();
         yield MenuItem::linkToCrud('Currency', 'fas fa-dollar', Currency::class);
+        yield MenuItem::linkToCrud('Tag', 'fas fa-tag', Tag::class);
         yield MenuItem::section();
         yield MenuItem::linkToCrud('Configuration', 'fas fa-gear', Configuration::class);
         yield MenuItem::linkToRoute('Applications', 'fas fa-calculator', 'admin_apps');
@@ -152,6 +160,18 @@ class DashboardController extends AbstractDashboardController
         return $total;
     }
 
+    private function getTotalInDeposits(): float
+    {
+        $deposits = $this->depositRepository->findAllActive();
+        $totalInDeposits = 0;
+
+        foreach ($deposits as $deposit) {
+            $totalInDeposits += $deposit->getAmountInUsd();
+        }
+
+        return $totalInDeposits;
+    }
+
     private function getTotalInLoans(): float
     {
         $loans = $this->loanRepository->findAll();
@@ -164,16 +184,16 @@ class DashboardController extends AbstractDashboardController
         return $totalInLoans;
     }
 
-    private function getTotalInDeposits(): float
+    private function getTotalInInvestments(): float
     {
-        $deposits = $this->depositRepository->findAllActive();
-        $totalInDeposits = 0;
+        $investments = $this->investmentRepository->findAll();
+        $totalInInvestments = 0;
 
-        foreach ($deposits as $deposit) {
-            $totalInDeposits += $deposit->getAmountInUsd();
+        foreach ($investments as $investment) {
+            $totalInInvestments += $investment->getValue();
         }
 
-        return $totalInDeposits;
+        return $totalInInvestments;
     }
 
     private function getIncomesThisMonth(): float

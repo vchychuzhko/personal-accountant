@@ -77,16 +77,17 @@ Panel is available by default at - https://&lt;your-localhost&gt;/admin
 
 ### Entities
 
-|   Name   | Description                                 |
-|:--------:|---------------------------------------------|
-| Currency | Core entity that allows managing currencies |
-| Balance  | Balance representation                      |
-|  Income  | Income attached to Balance                  |
-| Payment  | Payment or transaction attached to Balance  |
-| Exchange | Transfer between Balances                   |
-| Deposit  | Open or completed deposits                  |
-|   Loan   | Loans owed by person                        |
-|   Tag    | Payment tags for expenses organizing        |
+|    Name    | Description                                 |
+|:----------:|---------------------------------------------|
+|  Currency  | Core entity that allows managing currencies |
+|  Balance   | Balance representation                      |
+|   Income   | Income attached to Balance                  |
+|  Payment   | Payment or transaction attached to Balance  |
+|  Exchange  | Transfer between Balances                   |
+|  Deposit   | Open or completed deposits                  |
+| Investment | Records of purchased shares                 |
+|    Loan    | Loans owed by person                        |
+|    Tag     | Payment tags for expenses organizing        |
 
 * Creating Income, Payment, Exchange or Deposit will update related Balance amount.
 * On Deposit completion, initial amount is returned to the Balance and Income with interest is created.

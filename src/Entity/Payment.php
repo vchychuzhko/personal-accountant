@@ -30,6 +30,9 @@ class Payment
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
 
+    #[ORM\ManyToOne(inversedBy: 'payments')]
+    private ?Investment $investment = null;
+
     public function __construct()
     {
         $this->created_at = new \DateTimeImmutable();
@@ -104,6 +107,18 @@ class Payment
     public function setCreatedAt(\DateTimeImmutable $created_at): static
     {
         $this->created_at = $created_at;
+
+        return $this;
+    }
+
+    public function getInvestment(): ?Investment
+    {
+        return $this->investment;
+    }
+
+    public function setInvestment(?Investment $investment): static
+    {
+        $this->investment = $investment;
 
         return $this;
     }
