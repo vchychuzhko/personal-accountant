@@ -31,6 +31,10 @@ class Investment
     #[ORM\OrderBy(['created_at' => 'DESC'])]
     private Collection $payments;
 
+    #[ORM\ManyToOne(inversedBy: 'investments')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Currency $currency = null;
+
     public function __construct()
     {
         $this->payments = new ArrayCollection();
@@ -112,8 +116,20 @@ class Investment
         return $this;
     }
 
+    public function getCurrency(): ?Currency
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(?Currency $currency): static
+    {
+        $this->currency = $currency;
+
+        return $this;
+    }
+
     public function __toString(): string
     {
-        return $this->getName() . ' - ' . $this->getShare();
+        return $this->getName() . ' (' . $this->getShare() . ')';
     }
 }

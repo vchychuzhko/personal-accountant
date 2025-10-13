@@ -50,10 +50,13 @@ class CurrencyCrudController extends AbstractCrudController
             CollectionField::new('balances')
                 ->setTemplatePath('admin/fields/balances_by_currency.html.twig')
                 ->hideOnForm(),
-            CollectionField::new('deposits')
+            CollectionField::new('active_deposits')
                 ->setTemplatePath('admin/fields/deposits_by_currency.html.twig')
                 ->hideOnForm(),
-            CollectionField::new('Loans')
+            CollectionField::new('investments')
+                ->setTemplatePath('admin/fields/investments_by_currency.html.twig')
+                ->hideOnForm(),
+            CollectionField::new('loans')
                 ->setTemplatePath('admin/fields/loans_by_currency.html.twig')
                 ->hideOnForm(),
         ];

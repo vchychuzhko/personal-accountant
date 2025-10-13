@@ -1,0 +1,30 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
+{# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
+{% if (field.value is empty) %}
+    <span>-</span>
+{% elseif (ea.crud.currentAction == 'index') %}
+    <a href="{{ ea_url()
+        .setController('App\\Controller\\Admin\\InvestmentCrudController')
+        .setAction('index')
+        .set('filters[currency][value]', entity.primaryKeyValue)
+        .set('filters[currency][comparison]', '=')
+    }}">
+        {{ field.value | length }} investment(s)
+    </a>
+{% else %}
+    <ul class="ps-3 mb-0">
+        {% for investment in field.value %}
+            <li>
+                <a href="{{ ea_url()
+                    .unsetAll()
+                    .setController('App\\Controller\\Admin\\InvestmentCrudController')
+                    .setAction('detail')
+                    .setEntityId(investment.id)
+                }}">
+                    {{ investment }} - {{ investment.value | price(investment.currency.format) }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

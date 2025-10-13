@@ -39,10 +39,17 @@ class Currency
     #[ORM\OneToMany(targetEntity: Loan::class, mappedBy: 'currency')]
     private Collection $loans;
 
+    /**
+     * @var Collection<int, Investment>
+     */
+    #[ORM\OneToMany(targetEntity: Investment::class, mappedBy: 'currency')]
+    private Collection $investments;
+
     public function __construct()
     {
         $this->balances = new ArrayCollection();
         $this->loans = new ArrayCollection();
+        $this->investments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -137,13 +144,19 @@ class Currency
 
         foreach ($this->getBalances() as $balance) {
             foreach ($balance->getDeposits() as $deposit) {
-                if ($deposit->isActive()) {
-                    $deposits->add($deposit);
-                }
+                $deposits->add($deposit);
             }
         }
 
         return $deposits;
+    }
+
+    /**
+     * @return Collection<int, Deposit>
+     */
+    public function getActiveDeposits(): Collection
+    {
+        return $this->getDeposits()->filter(fn(Deposit $deposit) => $deposit->isActive());
     }
 
     /**
@@ -170,6 +183,36 @@ class Currency
             // set the owning side to null (unless already changed)
             if ($loan->getCurrency() === $this) {
                 $loan->setCurrency(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Investment>
+     */
+    public function getInvestments(): Collection
+    {
+        return $this->investments;
+    }
+
+    public function addInvestment(Investment $investment): static
+    {
+        if (!$this->investments->contains($investment)) {
+            $this->investments->add($investment);
+            $investment->setCurrency($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInvestment(Investment $investment): static
+    {
+        if ($this->investments->removeElement($investment)) {
+            // set the owning side to null (unless already changed)
+            if ($investment->getCurrency() === $this) {
+                $investment->setCurrency(null);
             }
         }
 

@@ -16,6 +16,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
@@ -64,10 +65,19 @@ class InvestmentCrudController extends AbstractCrudController
             TextField::new('name'),
             NumberField::new('share')
                 ->setNumDecimals(4),
+            AssociationField::new('currency'),
             NumberField::new('price')
-                ->formatValue(fn($value) => PriceUtils::format($value)),
+                ->formatValue(function ($value, Investment $entity) {
+                    $currency = $entity->getCurrency();
+
+                    return PriceUtils::format($value, $currency->getFormat());
+                }),
             NumberField::new('value')
-                ->formatValue(fn($value) => PriceUtils::format($value))
+                ->formatValue(function ($value, Investment $entity) {
+                    $currency = $entity->getCurrency();
+
+                    return PriceUtils::format($value, $currency->getFormat());
+                })
                 ->setSortable(true)
                 ->hideOnForm(),
 
@@ -78,6 +88,20 @@ class InvestmentCrudController extends AbstractCrudController
                 ->autocomplete()
                 ->hideOnIndex(),
         ];
+    }
+
+    public function configureFilters(Filters $filters): Filters
+    {
+        return $filters
+            ->add('currency')
+        ;
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setDefaultSort(['name' => 'ASC'])
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
