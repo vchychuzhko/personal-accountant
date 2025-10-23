@@ -72,6 +72,9 @@ class InvestmentCrudController extends AbstractCrudController
 
                     return PriceUtils::format($value, $currency->getFormat());
                 }),
+
+            FormField::addFieldset()
+                ->hideOnForm(),
             NumberField::new('value')
                 ->formatValue(function ($value, Investment $entity) {
                     $currency = $entity->getCurrency();
@@ -79,6 +82,21 @@ class InvestmentCrudController extends AbstractCrudController
                     return PriceUtils::format($value, $currency->getFormat());
                 })
                 ->setSortable(true)
+                ->hideOnForm(),
+            NumberField::new('purchased_value')
+                ->formatValue(function ($value, Investment $entity) {
+                    $currency = $entity->getCurrency();
+
+                    return PriceUtils::format($value, $currency->getFormat());
+                })
+                ->onlyOnDetail(),
+            NumberField::new('difference')
+                ->setTemplatePath('admin/fields/difference.html.twig')
+                ->formatValue(function ($value, Investment $entity) {
+                    $currency = $entity->getCurrency();
+
+                    return ($value > 0 ? '+' : '-') . PriceUtils::format(abs($value), $currency->getFormat());
+                })
                 ->hideOnForm(),
 
             FormField::addFieldset('Payments')

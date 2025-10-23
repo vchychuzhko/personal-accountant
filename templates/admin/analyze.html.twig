@@ -152,7 +152,7 @@ a[aria-expanded="true"] .icon {
                                                 <td data-label="Name">{{ payment.name }}</td>
                                                 <td data-label="Balance">{{ payment.balance }}</td>
                                                 <td data-label="Amount" data-price="{{ payment.amountInUsd }}">{{ payment.amountInUsd | price }}</td>
-                                                <td data-label="Created At"><time datetime="{{ payment.createdAt|date('c') }}" title="{{ payment.createdAt|date('r') }}">{{ payment.createdAt|date('d-m-Y H:i') }}</time></td>
+                                                <td data-label="Created At"><time datetime="{{ payment.createdAt|date('c') }}" title="{{ payment.createdAt|date('r') }}">{{ payment.createdAt|date('d.m.Y H:i') }}</time></td>
                                                 <td class="actions">
                                                     <a href="{{ ea_url()
                                                         .unsetAll()

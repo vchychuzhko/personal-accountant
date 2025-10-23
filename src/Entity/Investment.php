@@ -94,6 +94,18 @@ class Investment
         return $this->payments;
     }
 
+    public function getPurchasedValue(): ?float
+    {
+        $payments = $this->getPayments();
+
+        return $payments->reduce(fn(float $value, Payment $payment) => $value + $payment->getAmount(), 0);
+    }
+
+    public function getDifference(): ?float
+    {
+        return $this->getValue() - $this->getPurchasedValue();
+    }
+
     public function addPayment(Payment $payment): static
     {
         if (!$this->payments->contains($payment)) {
