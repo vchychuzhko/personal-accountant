@@ -224,33 +224,38 @@ class DashboardController extends AbstractDashboardController
 
     private function getTotalsChart(string $startDay, string $step): Chart
     {
-        $records = $this->cache->get("$startDay +1 $step", function (ItemInterface $item) use ($startDay, $step) {
-            $item->expiresAfter(86400);
-            $item->tag(self::DASHBOARD_CACHE_TAG);
+        $now = (new \DateTime())->format('j');
 
-            $balances = $this->balanceRepository->findAll();
+        $records = $this->cache->get(
+            'totals_' . str_replace(' ', '_', $startDay) . '+' . $step . '__' . $now,
+            function (ItemInterface $item) use ($startDay, $step) {
+                $item->expiresAfter(86400);
+                $item->tag(self::DASHBOARD_CACHE_TAG);
 
-            $day = new \DateTime("$startDay 00:00:00");
-            $today = new \DateTime();
-            $computedValue = [];
+                $balances = $this->balanceRepository->findAll();
 
-            if ($day->diff($today)->days < self::CHART_MIN_NUMBER_OF_DAYS) {
-                $day = new \DateTime(self::CHART_MIN_NUMBER_OF_DAYS . ' days ago 00:00:00');
-            }
+                $day = new \DateTime("$startDay 00:00:00");
+                $today = new \DateTime();
+                $computedValue = [];
 
-            while ($day <= $today) {
-                $total = 0;
-
-                foreach ($balances as $balance) {
-                    $total += $balance->getAmountInUsdAtMoment($day);
+                if ($day->diff($today)->days < self::CHART_MIN_NUMBER_OF_DAYS) {
+                    $day = new \DateTime(self::CHART_MIN_NUMBER_OF_DAYS . ' days ago 00:00:00');
                 }
 
-                $computedValue[$day->format('d/m')] = $total;
-                $day->modify("+1 $step");
-            }
+                while ($day <= $today) {
+                    $total = 0;
 
-            return $computedValue;
-        });
+                    foreach ($balances as $balance) {
+                        $total += $balance->getAmountInUsdAtMoment($day);
+                    }
+
+                    $computedValue[$day->format('d/m')] = $total;
+                    $day->modify("+1 $step");
+                }
+
+                return $computedValue;
+            }
+        );
 
         $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
         $chart->setData([
@@ -276,7 +281,9 @@ class DashboardController extends AbstractDashboardController
 
     private function getMonthDiffChart(): Chart
     {
-        $records = $this->cache->get('months_by_diff', function (ItemInterface $item) {
+        $now = (new \DateTime())->format('j');
+
+        $records = $this->cache->get('months_by_diff__' . $now, function (ItemInterface $item) {
             $item->expiresAfter(86400);
             $item->tag(self::DASHBOARD_CACHE_TAG);
 
@@ -329,7 +336,9 @@ class DashboardController extends AbstractDashboardController
 
     private function getAssetsByBalanceChart(): Chart
     {
-        $data = $this->cache->get('Assets by balance', function (ItemInterface $item) {
+        $now = (new \DateTime())->format('j');
+
+        $data = $this->cache->get('assets_by_balance__' . $now, function (ItemInterface $item) {
             $item->expiresAfter(86400);
             $item->tag(self::DASHBOARD_CACHE_TAG);
 
@@ -351,7 +360,7 @@ class DashboardController extends AbstractDashboardController
                 ];
             }, $balances);
 
-            usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
+            usort($data, fn($a, $b) => $b['value'] <=> $a['value']);
 
             return $data;
         });
@@ -361,7 +370,9 @@ class DashboardController extends AbstractDashboardController
 
     private function getAssetsByCurrencyChart(): Chart
     {
-        $data = $this->cache->get('Assets by currency', function (ItemInterface $item) {
+        $now = (new \DateTime())->format('j');
+
+        $data = $this->cache->get('assets_by_currency__' . $now, function (ItemInterface $item) {
             $item->expiresAfter(86400);
             $item->tag(self::DASHBOARD_CACHE_TAG);
 
@@ -381,7 +392,7 @@ class DashboardController extends AbstractDashboardController
                 ];
             }, $currencies);
 
-            usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
+            usort($data, fn($a, $b) => $b['value'] <=> $a['value']);
 
             return $data;
         });
@@ -391,7 +402,9 @@ class DashboardController extends AbstractDashboardController
 
     private function getExpensesByTagChart(): Chart
     {
-        $data = $this->cache->get('Expenses by tag', function (ItemInterface $item) {
+        $now = (new \DateTime())->format('j');
+
+        $data = $this->cache->get('expenses_by_tag__' . $now, function (ItemInterface $item) {
             $item->expiresAfter(86400);
             $item->tag(self::DASHBOARD_CACHE_TAG);
 
@@ -428,7 +441,7 @@ class DashboardController extends AbstractDashboardController
                 ];
             }, $tags);
 
-            usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
+            usort($data, fn($a, $b) => $b['value'] <=> $a['value']);
 
             return $data;
         });
@@ -440,10 +453,10 @@ class DashboardController extends AbstractDashboardController
     {
         $chart = $this->chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
         $chart->setData([
-            'labels' => array_map(fn ($item) => $item['label'], $data),
+            'labels' => array_map(fn($item) => $item['label'], $data),
             'datasets' => [
                 [
-                    'data' => array_map(fn ($item) => $item['value'], $data),
+                    'data' => array_map(fn($item) => $item['value'], $data),
                 ],
             ],
         ]);

@@ -93,36 +93,39 @@ class AnalyzeController extends AbstractController
 
     private function getExpensesByTagByMonth(string $monthKey, ?string $sortBy = null): array
     {
-        $data = $this->cache->get('Expenses by tag ' . $monthKey, function (ItemInterface $item) use ($monthKey) {
-            $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
+        $data = $this->cache->get(
+            'expenses_by_tag__' . str_replace(' ', '_', $monthKey),
+            function (ItemInterface $item) use ($monthKey) {
+                $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
 
-            $dateFrom = new \DateTime("first day of $monthKey 00:00:00");
-            $dateTo = clone $dateFrom;
-            $dateTo = $dateTo->modify('+1 month');
+                $dateFrom = new \DateTime("first day of $monthKey 00:00:00");
+                $dateTo = clone $dateFrom;
+                $dateTo = $dateTo->modify('+1 month');
 
-            $payments = $this->paymentRepository->findBetweenDates($dateFrom, $dateTo);
-            $data = [];
+                $payments = $this->paymentRepository->findBetweenDates($dateFrom, $dateTo);
+                $data = [];
 
-            foreach ($payments as $payment) {
-                $tag = $payment->getTag();
-                $tagId = $tag->getId();
+                foreach ($payments as $payment) {
+                    $tag = $payment->getTag();
+                    $tagId = $tag->getId();
 
-                if (!isset($data[$tagId])) {
-                    $data[$tagId] = [
-                        'id' => $tagId,
-                        'name' => $tag->getName(),
-                        'payments' => [],
-                        'payments_url' => $this->getPaymentsUrlByTagAndCreatedAt($dateFrom, $dateTo, $tagId),
-                        'total' => 0,
-                    ];
+                    if (!isset($data[$tagId])) {
+                        $data[$tagId] = [
+                            'id' => $tagId,
+                            'name' => $tag->getName(),
+                            'payments' => [],
+                            'payments_url' => $this->getPaymentsUrlByTagAndCreatedAt($dateFrom, $dateTo, $tagId),
+                            'total' => 0,
+                        ];
+                    }
+
+                    $data[$tagId]['payments'][] = $payment;
+                    $data[$tagId]['total'] = $data[$tagId]['total'] + $payment->getAmountInUsd();
                 }
 
-                $data[$tagId]['payments'][] = $payment;
-                $data[$tagId]['total'] = $data[$tagId]['total'] + $payment->getAmountInUsd();
+                return $data;
             }
-
-            return $data;
-        });
+        );
 
         if ($sortBy) {
             usort($data, fn($a, $b) => $b[$sortBy] <=> $a[$sortBy]);
@@ -164,23 +167,26 @@ class AnalyzeController extends AbstractController
 
     private function getExpensesByTagByMonthChart(string $monthKey): Chart
     {
-        $data = $this->cache->get('Expenses by tag ' . $monthKey . ' chart', function (ItemInterface $item) use ($monthKey) {
-            $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
+        $data = $this->cache->get(
+            'expenses_by_tag_chart__' . str_replace(' ', '_', $monthKey),
+            function (ItemInterface $item) use ($monthKey) {
+                $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
 
-            $tags = $this->getExpensesByTagByMonth($monthKey);
-            $totalExpenses = $this->getTotalExpensesByMonth($monthKey);
+                $tags = $this->getExpensesByTagByMonth($monthKey);
+                $totalExpenses = $this->getTotalExpensesByMonth($monthKey);
 
-            $data = array_map(function ($tag) use ($totalExpenses) {
-                return [
-                    'label' => $tag['name'],
-                    'value' => number_format($tag['total'] / $totalExpenses * 100, 1, '.', ''),
-                ];
-            }, $tags);
+                $data = array_map(function ($tag) use ($totalExpenses) {
+                    return [
+                        'label' => $tag['name'],
+                        'value' => number_format($tag['total'] / $totalExpenses * 100, 1, '.', ''),
+                    ];
+                }, $tags);
 
-            usort($data, fn ($a, $b) => $b['value'] <=> $a['value']);
+                usort($data, fn($a, $b) => $b['value'] <=> $a['value']);
 
-            return $data;
-        });
+                return $data;
+            }
+        );
 
         return $this->getDoughnutChart($data, 'In %');
     }
@@ -189,10 +195,10 @@ class AnalyzeController extends AbstractController
     {
         $chart = $this->chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
         $chart->setData([
-            'labels' => array_map(fn ($item) => $item['label'], $data),
+            'labels' => array_map(fn($item) => $item['label'], $data),
             'datasets' => [
                 [
-                    'data' => array_map(fn ($item) => $item['value'], $data),
+                    'data' => array_map(fn($item) => $item['value'], $data),
                 ],
             ],
         ]);
