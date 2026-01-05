@@ -23,7 +23,7 @@ Demo - https://pa-demo.vchychuzhko.com
 
 ### Requirements
 
-- PHP 8.3
+- PHP 8.4
 - Composer 2
 - MySQL 8
 - Node 22
@@ -104,4 +104,4 @@ php bin/console app:fix-payment-ids
 
 ---
 
-###### Built with [Symfony 6.4](https://symfony.com/doc/6.4/index.html)
+###### Built with [Symfony 7.4](https://symfony.com/doc/7.4/index.html)
