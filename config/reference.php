@@ -1265,9 +1265,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             lifetime?: int|Param, // Default: 31536000
  *             path?: scalar|null|Param, // Default: "/"
  *             domain?: scalar|null|Param, // Default: null
- *             secure?: true|false|"auto"|Param, // Default: null
+ *             secure?: true|false|"auto"|Param, // Default: false
  *             httponly?: bool|Param, // Default: true
- *             samesite?: null|"lax"|"strict"|"none"|Param, // Default: "lax"
+ *             samesite?: null|"lax"|"strict"|"none"|Param, // Default: null
  *             always_remember_me?: bool|Param, // Default: false
  *             remember_me_parameter?: scalar|null|Param, // Default: "_remember_me"
  *         },
