@@ -1,7 +1,10 @@
 {# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
 {# @var action \EasyCorp\Bundle\EasyAdminBundle\Dto\ActionDto #}
-<button class="btn text-success" data-action-name="complete" data-bs-toggle="modal" data-bs-target="#modal-complete">
-    <span class="btn-label"><i class="action-icon fas fa-check"></i> <span class="action-label">Complete</span></span>
+<button class="btn btn-success" data-action-name="complete" data-bs-toggle="modal" data-bs-target="#modal-complete">
+    <twig:ea:Icon name="internal:check" class="btn-icon" />
+    <span class="btn-label">
+        <span class="action-label">Complete</span>
+    </span>
 </button>
 
 <div id="modal-complete" class="modal fade" tabindex="-1" aria-modal="true" role="dialog">

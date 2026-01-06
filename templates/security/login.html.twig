@@ -38,7 +38,7 @@
 {% block body %}
     <form class="form-login" action="{{ path('app_login') }}" method="post">
         <img class="mb-3" src="{{ asset('favicon.svg') }}" alt="Personal Accountant" width="72" height="72">
-        <h1 class="mb-3">Please log in</h1>
+        <h1 class="mb-3">Personal Accountant</h1>
 
         {% if error %}
             <p class="text-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</p>
@@ -62,7 +62,7 @@
             </label>
         #}
 
-        <button class="btn btn-primary w-100 mt-3 py-2 fs-5">Login</button>
+        <button class="btn btn-primary w-100 mt-3 py-4 fs-5 justify-content-center">Login</button>
 
         <p class="mt-5 mb-3 text-muted">
             <a

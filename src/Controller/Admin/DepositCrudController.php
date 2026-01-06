@@ -171,7 +171,7 @@ class DepositCrudController extends AbstractCrudController
         $complete = Action::new('complete')
             ->linkToCrudAction('complete')
             ->setTemplatePath('admin/deposit_complete_action.html.twig')
-            ->displayIf(fn (Deposit $deposit) => $deposit->isActive());
+            ->displayIf(fn(Deposit $deposit) => $deposit->isActive());
 
         return parent::configureActions($actions)
             ->add(Crud::PAGE_DETAIL, $complete);

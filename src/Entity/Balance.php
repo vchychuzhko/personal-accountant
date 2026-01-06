@@ -215,11 +215,14 @@ class Balance
     }
 
     /**
-     * @return Collection<int, Deposit>
+     * @return Deposit[]
      */
-    public function getActiveDeposits(): Collection
+    public function getActiveDeposits(): array
     {
-        return $this->deposits->filter(fn(Deposit $deposit) => $deposit->isActive());
+        return $this->deposits
+            ->filter(fn(Deposit $deposit) => $deposit->isActive())
+            ->toArray()
+        ;
     }
 
     public function addDeposit(Deposit $deposit): static

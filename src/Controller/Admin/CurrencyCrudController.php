@@ -11,7 +11,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
@@ -47,16 +47,16 @@ class CurrencyCrudController extends AbstractCrudController
 
             FormField::addFieldset()
                 ->onlyOnDetail(),
-            CollectionField::new('balances')
+            ArrayField::new('balances')
                 ->setTemplatePath('admin/fields/balances_by_currency.html.twig')
                 ->hideOnForm(),
-            CollectionField::new('active_deposits')
+            ArrayField::new('active_deposits')
                 ->setTemplatePath('admin/fields/deposits_by_currency.html.twig')
                 ->hideOnForm(),
-            CollectionField::new('investments')
+            ArrayField::new('investments')
                 ->setTemplatePath('admin/fields/investments_by_currency.html.twig')
                 ->hideOnForm(),
-            CollectionField::new('loans')
+            ArrayField::new('loans')
                 ->setTemplatePath('admin/fields/loans_by_currency.html.twig')
                 ->hideOnForm(),
         ];

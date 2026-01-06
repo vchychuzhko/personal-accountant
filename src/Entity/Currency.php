@@ -152,11 +152,14 @@ class Currency
     }
 
     /**
-     * @return Collection<int, Deposit>
+     * @return Deposit[]
      */
-    public function getActiveDeposits(): Collection
+    public function getActiveDeposits(): array
     {
-        return $this->getDeposits()->filter(fn(Deposit $deposit) => $deposit->isActive());
+        return $this->getDeposits()
+            ->filter(fn(Deposit $deposit) => $deposit->isActive())
+            ->toArray()
+        ;
     }
 
     /**

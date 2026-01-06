@@ -144,16 +144,8 @@ class AnalyzeController extends AbstractController
             ->setController(PaymentCrudController::class)
             ->setAction('index')
             ->set('filters[created_at][comparison]', 'between')
-            ->set('filters[created_at][value][date][month]', $dateFrom->format('n'))
-            ->set('filters[created_at][value][date][day]', 1)
-            ->set('filters[created_at][value][date][year]', $dateFrom->format('Y'))
-            ->set('filters[created_at][value][time][hour]', 0)
-            ->set('filters[created_at][value][time][minute]', 0)
-            ->set('filters[created_at][value2][date][month]', $dateTo->format('n'))
-            ->set('filters[created_at][value2][date][day]', 1)
-            ->set('filters[created_at][value2][date][year]', $dateTo->format('Y'))
-            ->set('filters[created_at][value2][time][hour]', 0)
-            ->set('filters[created_at][value2][time][minute]', 0)
+            ->set('filters[created_at][value]', $dateFrom->format('Y-m-d\TH:i'))
+            ->set('filters[created_at][value2]', $dateTo->format('Y-m-d\TH:i'))
             ->set('sort[amount_in_usd]', 'DESC')
         ;
 
