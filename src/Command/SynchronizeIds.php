@@ -5,17 +5,20 @@ namespace App\Command;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'app:fix-payment-ids',
-    description: 'Update all payment IDs according to their created_at order',
+    name: 'app:sync-ids',
+    description: 'Update all IDs according to their created_at order',
 )]
-class FixPaymentIds extends Command
+class SynchronizeIds extends Command
 {
+    const ALLOWED_ENTITIES = ['income', 'payment'];
+
     public function __construct(
         private readonly Connection $connection,
         ?string $name = null,
@@ -23,16 +26,33 @@ class FixPaymentIds extends Command
         parent::__construct($name);
     }
 
+    protected function configure(): void
+    {
+        $this
+            ->setDefinition([
+                new InputArgument('entity', InputArgument::REQUIRED, 'Entity to sync IDs for', null, self::ALLOWED_ENTITIES),
+            ])
+        ;
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $payments = $this->connection->fetchAllAssociative('SELECT * FROM payment p ORDER BY p.created_at ASC');
+        $entityName = $input->getArgument('entity');
+
+        if (!in_array($entityName, self::ALLOWED_ENTITIES)) {
+            $io->error('Entity should be one of ' . implode(', ', self::ALLOWED_ENTITIES));
+
+            return Command::FAILURE;
+        }
+
+        $entities = $this->connection->fetchAllAssociative(sprintf('SELECT * FROM `%s` ORDER BY created_at ASC', $entityName));
 
         $modifiedCount = 0;
 
-        foreach ($payments as $index => $payment) {
-            if ($index + 1 !== $payment['id']) {
-                $payments[$index]['id'] = $index + 1;
+        foreach ($entities as $index => $entity) {
+            if ($index + 1 !== $entity['id']) {
+                $entities[$index]['id'] = $index + 1;
 
                 $modifiedCount++;
             }
@@ -51,14 +71,14 @@ class FixPaymentIds extends Command
             return Command::SUCCESS;
         }
 
-        $this->connection->executeStatement('TRUNCATE TABLE payment');
+        $this->connection->executeStatement(sprintf('TRUNCATE TABLE `%s`', $entityName));
         $output->writeln('Table is truncated.');
 
-        foreach ($payments as $payment) {
-            $this->connection->insert('payment', $payment);
+        foreach ($entities as $entity) {
+            $this->connection->insert($entityName, $entity);
         }
 
-        $io->success('Payment IDs are updated!');
+        $io->success('IDs are synced!');
 
         return Command::SUCCESS;
     }
