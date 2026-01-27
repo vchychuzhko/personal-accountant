@@ -116,6 +116,26 @@ class Payment
         return $this->investment;
     }
 
+    public function getShare(): ?float
+    {
+        if (preg_match('/([\d.]+)$/', $this->getName(), $matches)) {
+            return (float) $matches[1];
+        }
+
+        return null;
+    }
+
+    public function getPricePerShare(): ?float
+    {
+        $share = $this->getShare();
+
+        if ($share === null) {
+            return null;
+        }
+
+        return $this->amount / $share;
+    }
+
     public function setInvestment(?Investment $investment): static
     {
         $this->investment = $investment;

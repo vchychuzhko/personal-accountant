@@ -8,7 +8,9 @@
         <thead>
         <tr>
             <th data-column="name"><span>Name</span></th>
+            <th data-column="share"><span>Share</span></th>
             <th data-column="amount"><span>Amount</span></th>
+            <th data-column="price"><span>Price</span></th>
             <th data-column="created_at"><span>Created At</span></th>
             <th><span class="visually-hidden">Actions</span></th>
         </tr>
@@ -17,7 +19,9 @@
         {% for payment in field.value %}
             <tr>
                 <td data-column="name" data-label="Name">{{ payment.name }}</td>
+                <td data-column="share" data-label="Share">{{ payment.share | number_format(4) }}</td>
                 <td data-column="amount" data-label="Amount">{{ payment.amount | price(payment.balance.currency.format) }}</td>
+                <td data-column="price" data-label="Price">{{ payment.pricePerShare | price(payment.balance.currency.format) }}</td>
                 <td data-column="created_at" data-label="Created At">
                     <time datetime="{{ payment.createdAt|date('c') }}" title="{{ payment.createdAt|date('r') }}">{{ payment.createdAt|date('d.m.Y H:i') }}</time>
                 </td>
