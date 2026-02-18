@@ -5,3 +5,18 @@
 .form-fieldset--no-labels .field-label {
     display: none;
 }
+
+.actions .btn {
+    background: none;
+    border: none;
+    box-shadow: none;
+    color: var(--link-color);
+    padding: 0;
+}
+.actions .btn:not(:disabled):not(.disabled):hover {
+    background: none;
+    color: var(--link-hover-color);
+}
+.actions .btn .icon {
+    display: none;
+}
