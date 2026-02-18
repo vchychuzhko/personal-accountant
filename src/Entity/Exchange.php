@@ -104,9 +104,16 @@ class Exchange
         return $this;
     }
 
+    /**
+     * Get rate in a way that the other part is considered as 1.
+     * @return float
+     */
     public function getRate(): float
     {
-        return $this->getAmount() / $this->getResult();
+        $from = $this->getAmount();
+        $to = $this->getResult();
+
+        return $from >= $to ? $from / $to : $to / $from;
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable

@@ -11,7 +11,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -33,8 +32,6 @@ class ExchangeCrudController extends AbstractCrudController
         $timezone = $this->configurationRepository->getByName('timezone');
 
         return [
-            IdField::new('id')
-                ->onlyOnIndex(),
             AssociationField::new('balance_from'),
             AssociationField::new('balance_to'),
             NumberField::new('amount')
@@ -50,7 +47,7 @@ class ExchangeCrudController extends AbstractCrudController
                     return PriceUtils::format($value, $currency->getFormat());
                 }),
             NumberField::new('rate')
-                ->setNumDecimals(2)
+                ->formatValue(fn($value) => rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.'))
                 ->hideOnForm(),
             DateTimeField::new('created_at')
                 ->setFormTypeOption('model_timezone', 'UTC')
@@ -73,7 +70,8 @@ class ExchangeCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setDefaultSort(['created_at' => 'DESC']);
+            ->setDefaultSort(['created_at' => 'DESC'])
+        ;
     }
 
     /**
