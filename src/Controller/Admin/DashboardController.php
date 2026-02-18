@@ -121,7 +121,6 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section();
         yield MenuItem::linkToCrud('Configuration', 'fas fa-gear', Configuration::class);
         yield MenuItem::linkToRoute('Applications', 'fas fa-calculator', 'admin_apps');
-        yield MenuItem::linkToUrl('GitHub', 'fa-brands fa-github', 'https://github.com/vchychuzhko/personal-accountant');
     }
 
     public function configureActions(): Actions
@@ -151,13 +150,14 @@ class DashboardController extends AbstractDashboardController
     private function getGrandTotal(): float
     {
         $balances = $this->balanceRepository->findAll();
+        $depositTotal = $this->getTotalInDeposits();
         $total = 0;
 
         foreach ($balances as $balance) {
             $total += $balance->getAmountInUsd();
         }
 
-        return $total;
+        return $total + $depositTotal;
     }
 
     private function getTotalInDeposits(): float
@@ -233,6 +233,7 @@ class DashboardController extends AbstractDashboardController
                 $item->tag(self::DASHBOARD_CACHE_TAG);
 
                 $balances = $this->balanceRepository->findAll();
+                $depositTotal = $this->getTotalInDeposits();
 
                 $day = new \DateTime("$startDay 00:00:00");
                 $today = new \DateTime();
@@ -249,7 +250,7 @@ class DashboardController extends AbstractDashboardController
                         $total += $balance->getAmountInUsdAtMoment($day);
                     }
 
-                    $computedValue[$day->format('d/m')] = $total;
+                    $computedValue[$day->format('d/m')] = $total + $depositTotal;
                     $day->modify("+1 $step");
                 }
 
