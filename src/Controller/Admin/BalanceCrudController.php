@@ -2,8 +2,10 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Admin;
 use App\Entity\Balance;
 use App\Utils\PriceUtils;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
@@ -14,7 +16,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
@@ -33,6 +34,9 @@ class BalanceCrudController extends AbstractCrudController
     ): QueryBuilder {
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
+        $qb->andWhere('entity.admin = :admin')
+            ->setParameter('admin', $this->getUser());
+
         $sortFields = $searchDto->getSort();
 
         if (isset($sortFields['amount_in_usd'])) {
@@ -46,15 +50,30 @@ class BalanceCrudController extends AbstractCrudController
         return $qb;
     }
 
+    public function createEntity(string $entityFqcn): Balance
+    {
+        $entity = new Balance();
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $entity->setAdmin($admin);
+
+        return $entity;
+    }
+
     public function configureFields(string $pageName): iterable
     {
         return [
             FormField::addColumn(),
             FormField::addFieldset(),
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('name'),
-            AssociationField::new('currency'),
+            AssociationField::new('currency')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) {
+                        return $repository->createQueryBuilder('c')
+                            ->andWhere('c.admin = :admin')
+                            ->setParameter('admin', $this->getUser());
+                    },
+                ]),
             NumberField::new('amount')
                 ->formatValue(function ($value, Balance $entity) {
                     $currency = $entity->getCurrency();

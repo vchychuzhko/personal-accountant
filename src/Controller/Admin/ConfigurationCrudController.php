@@ -2,12 +2,17 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Admin;
 use App\Entity\Configuration;
+use Doctrine\ORM\QueryBuilder;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -20,11 +25,33 @@ class ConfigurationCrudController extends AbstractCrudController
         return Configuration::class;
     }
 
+    public function createIndexQueryBuilder(
+        SearchDto $searchDto,
+        EntityDto $entityDto,
+        FieldCollection $fields,
+        FilterCollection $filters
+    ): QueryBuilder {
+        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+
+        $qb->andWhere('entity.admin = :admin')
+            ->setParameter('admin', $this->getUser());
+
+        return $qb;
+    }
+
+    public function createEntity(string $entityFqcn): Configuration
+    {
+        $entity = new Configuration();
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $entity->setAdmin($admin);
+
+        return $entity;
+    }
+
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('label'),
             TextField::new('name')
                 ->setDisabled(),
@@ -49,9 +76,11 @@ class ConfigurationCrudController extends AbstractCrudController
         TagAwareCacheInterface $cache,
         AdminUrlGenerator $adminUrlGenerator
     ): RedirectResponse {
-        $cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $cache->invalidateTags([DashboardController::getCacheTag($admin)]);
 
-        $this->addFlash('success', '"' . DashboardController::DASHBOARD_CACHE_TAG . '" cache is successfully cleared');
+        $this->addFlash('success', 'Cache is successfully cleared');
 
         $targetUrl = $adminUrlGenerator
             ->setController(self::class)

@@ -2,10 +2,12 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Admin;
 use App\Entity\Deposit;
 use App\Entity\Income;
 use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminAction;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
@@ -22,7 +24,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\PercentField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
@@ -53,13 +54,16 @@ class DepositCrudController extends AbstractCrudController
     ): QueryBuilder {
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
+        $qb->join('entity.balance', 'b')
+            ->andWhere('b.admin = :admin')
+            ->setParameter('admin', $this->getUser());
+
         $sortFields = $searchDto->getSort();
 
         if (isset($sortFields['amount_in_usd'])) {
             $sortDirection = $sortFields['amount_in_usd'];
 
-            $qb->leftJoin('entity.balance', 'balance')
-                ->leftJoin('balance.currency', 'currency')
+            $qb->leftJoin('b.currency', 'currency')
                 ->addSelect('(entity.amount / currency.rate) AS HIDDEN amount_in_usd')
                 ->orderBy('amount_in_usd', $sortDirection);
         }
@@ -73,10 +77,15 @@ class DepositCrudController extends AbstractCrudController
             FormField::addColumn(8)
                 ->addCssClass('form-column--wide'),
             FormField::addFieldset(),
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('name'),
-            AssociationField::new('balance'),
+            AssociationField::new('balance')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) {
+                        return $repository->createQueryBuilder('b')
+                            ->andWhere('b.admin = :admin')
+                            ->setParameter('admin', $this->getUser());
+                    },
+                ]),
 
             NumberField::new('amount')
                 ->formatValue(function ($value, Deposit $entity) {
@@ -206,7 +215,9 @@ class DepositCrudController extends AbstractCrudController
 
         $entityManager->flush();
 
-        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $this->cache->invalidateTags([DashboardController::getCacheTag($admin)]);
 
         $this->addFlash('success', 'Deposit "' . $deposit->getName() . '" is completed');
 
@@ -233,7 +244,9 @@ class DepositCrudController extends AbstractCrudController
         $entityManager->persist($balance);
         $entityManager->flush();
 
-        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $this->cache->invalidateTags([DashboardController::getCacheTag($admin)]);
 
         parent::persistEntity($entityManager, $entityInstance);
     }

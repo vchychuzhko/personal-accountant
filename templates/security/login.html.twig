@@ -64,6 +64,15 @@
 
         <button class="btn btn-primary w-100 mt-3 py-4 fs-5 justify-content-center">Login</button>
 
+        {% if registration_open %}
+            <p class="mt-4 mb-0">
+                <a
+                    class="text-decoration-underline link-primary link-underline-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
+                    href="{{ path('app_register') }}"
+                >Create an account</a>
+            </p>
+        {% endif %}
+
         <p class="mt-5 mb-3 text-muted">
             <a
                 class="text-decoration-underline link-primary link-underline-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"

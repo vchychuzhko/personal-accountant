@@ -13,6 +13,10 @@ class Configuration
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\ManyToOne(targetEntity: Admin::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Admin $admin = null;
+
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
@@ -59,6 +63,18 @@ class Configuration
     public function setValue(?string $value): static
     {
         $this->value = $value;
+
+        return $this;
+    }
+
+    public function getAdmin(): ?Admin
+    {
+        return $this->admin;
+    }
+
+    public function setAdmin(?Admin $admin): static
+    {
+        $this->admin = $admin;
 
         return $this;
     }

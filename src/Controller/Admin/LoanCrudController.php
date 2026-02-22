@@ -2,8 +2,10 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Admin;
 use App\Entity\Loan;
 use App\Utils\PriceUtils;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
@@ -13,7 +15,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
@@ -32,6 +33,9 @@ class LoanCrudController extends AbstractCrudController
     ): QueryBuilder {
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
+        $qb->andWhere('entity.admin = :admin')
+            ->setParameter('admin', $this->getUser());
+
         $sortFields = $searchDto->getSort();
 
         if (isset($sortFields['amount_in_usd'])) {
@@ -45,13 +49,28 @@ class LoanCrudController extends AbstractCrudController
         return $qb;
     }
 
+    public function createEntity(string $entityFqcn): Loan
+    {
+        $entity = new Loan();
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $entity->setAdmin($admin);
+
+        return $entity;
+    }
+
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('person'),
-            AssociationField::new('currency'),
+            AssociationField::new('currency')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) {
+                        return $repository->createQueryBuilder('c')
+                            ->andWhere('c.admin = :admin')
+                            ->setParameter('admin', $this->getUser());
+                    },
+                ]),
             NumberField::new('amount')
                 ->formatValue(function ($value, Loan $entity) {
                     $currency = $entity->getCurrency();

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Admin;
 use App\Entity\Configuration;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -16,11 +17,13 @@ class ConfigurationRepository extends ServiceEntityRepository
         parent::__construct($registry, Configuration::class);
     }
 
-    public function getByName($value): mixed
+    public function getByName(string $value, Admin $admin): mixed
     {
         $setting = $this->createQueryBuilder('c')
             ->andWhere('c.name = :val')
+            ->andWhere('c.admin = :admin')
             ->setParameter('val', $value)
+            ->setParameter('admin', $admin)
             ->getQuery()
             ->getOneOrNullResult()
         ;

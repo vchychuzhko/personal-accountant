@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Admin;
 use App\Entity\Payment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,11 +20,14 @@ class PaymentRepository extends ServiceEntityRepository
     /**
      * @return Payment[] Returns an array of Payment objects
      */
-    public function findAfterDate(\DateTimeInterface $date): array
+    public function findAfterDate(\DateTimeInterface $date, Admin $admin): array
     {
         return $this->createQueryBuilder('p')
+            ->join('p.balance', 'b')
             ->where('p.created_at > :date')
+            ->andWhere('b.admin = :admin')
             ->setParameter('date', $date)
+            ->setParameter('admin', $admin)
             ->getQuery()
             ->getResult()
         ;
@@ -32,13 +36,16 @@ class PaymentRepository extends ServiceEntityRepository
     /**
      * @return Payment[] Returns an array of Payment objects
      */
-    public function findBetweenDates(\DateTimeInterface $from, \DateTimeInterface $to): array
+    public function findBetweenDates(\DateTimeInterface $from, \DateTimeInterface $to, Admin $admin): array
     {
         return $this->createQueryBuilder('p')
+            ->join('p.balance', 'b')
             ->where('p.created_at > :from')
             ->andWhere('p.created_at < :to')
+            ->andWhere('b.admin = :admin')
             ->setParameter('from', $from)
             ->setParameter('to', $to)
+            ->setParameter('admin', $admin)
             ->getQuery()
             ->getResult()
         ;

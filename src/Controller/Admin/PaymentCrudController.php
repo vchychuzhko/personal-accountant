@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Admin;
 use App\Entity\Payment;
 use App\Repository\ConfigurationRepository;
 use App\Utils\PriceUtils;
@@ -20,7 +21,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -48,13 +48,16 @@ class PaymentCrudController extends AbstractCrudController
     ): QueryBuilder {
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
+        $qb->join('entity.balance', 'b')
+            ->andWhere('b.admin = :admin')
+            ->setParameter('admin', $this->getUser());
+
         $sortFields = $searchDto->getSort();
 
         if (isset($sortFields['amount_in_usd'])) {
             $sortDirection = $sortFields['amount_in_usd'];
 
-            $qb->leftJoin('entity.balance', 'balance')
-                ->leftJoin('balance.currency', 'currency')
+            $qb->leftJoin('b.currency', 'currency')
                 ->addSelect('(entity.amount / currency.rate) AS HIDDEN amount_in_usd')
                 ->orderBy('amount_in_usd', $sortDirection);
         }
@@ -64,13 +67,20 @@ class PaymentCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        $timezone = $this->configurationRepository->getByName('timezone');
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $timezone = $this->configurationRepository->getByName('timezone', $admin);
 
         return [
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('name'),
-            AssociationField::new('tag'),
+            AssociationField::new('tag')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) {
+                        return $repository->createQueryBuilder('t')
+                            ->andWhere('t.admin = :admin')
+                            ->setParameter('admin', $this->getUser());
+                    },
+                ]),
             AssociationField::new('balance')
                 ->setFormTypeOptions([
                     'query_builder' => function (EntityRepository $repository) {
@@ -79,8 +89,10 @@ class PaymentCrudController extends AbstractCrudController
 
                         return $repository->createQueryBuilder('b')
                             ->leftJoin('b.payments', 'p', 'WITH', 'p.created_at BETWEEN :from AND :to')
+                            ->andWhere('b.admin = :admin')
                             ->setParameter('from', $dateFrom)
                             ->setParameter('to', $dateTo)
+                            ->setParameter('admin', $this->getUser())
                             ->groupBy('b.id')
                             ->orderBy('COUNT(p.id)', 'DESC')
                         ;
@@ -195,6 +207,8 @@ class PaymentCrudController extends AbstractCrudController
         $entityManager->persist($balance);
         $entityManager->flush();
 
-        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $this->cache->invalidateTags([DashboardController::getCacheTag($admin)]);
     }
 }

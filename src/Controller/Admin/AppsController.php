@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Admin;
 use App\Repository\CurrencyRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,8 +18,10 @@ class AppsController extends AbstractController
     #[Route(path: '/admin/apps', name: 'admin_apps')]
     public function index(): Response
     {
+        /** @var Admin $admin */
+        $admin = $this->getUser();
         return $this->render('admin/apps.html.twig', [
-            'currencies' => $this->currencyRepository->findAll(),
+            'currencies' => $this->currencyRepository->findBy(['admin' => $admin]),
         ]);
     }
 }

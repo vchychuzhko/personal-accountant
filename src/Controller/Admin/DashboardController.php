@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Admin;
 use App\Entity\Balance;
 use App\Entity\Configuration;
 use App\Entity\Currency;
@@ -37,8 +38,6 @@ use Symfony\UX\Chartjs\Model\Chart;
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {
-    public const DASHBOARD_CACHE_TAG = 'dashboard';
-
     private const CHART_MIN_NUMBER_OF_DAYS = 7;
 
     public function __construct(
@@ -54,39 +53,47 @@ class DashboardController extends AbstractDashboardController
     ) {
     }
 
+    public static function getCacheTag(Admin $admin): string
+    {
+        return 'dashboard_' . $admin->getId();
+    }
+
     public function index(): Response
     {
-        $incomesThisMonth = $this->getIncomesThisMonth();
-        $expensesThisMonth = $this->getExpensesThisMonth();
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+
+        $incomesThisMonth = $this->getIncomesThisMonth($admin);
+        $expensesThisMonth = $this->getExpensesThisMonth($admin);
 
         return $this->render('admin/index.html.twig', [
-            'total' => PriceUtils::format($this->getGrandTotal()),
+            'total' => PriceUtils::format($this->getGrandTotal($admin)),
             'incomes_this_month' => PriceUtils::format($incomesThisMonth),
             'expenses_this_month' => PriceUtils::format($expensesThisMonth),
             'diff_this_month' => PriceUtils::format($incomesThisMonth - $expensesThisMonth),
-            'total_in_deposits' => PriceUtils::format($this->getTotalInDeposits()),
-            'total_in_investments' => PriceUtils::format($this->getTotalInInvestments()),
-            'total_in_loans' => PriceUtils::format($this->getTotalInLoans()),
+            'total_in_deposits' => PriceUtils::format($this->getTotalInDeposits($admin)),
+            'total_in_investments' => PriceUtils::format($this->getTotalInInvestments($admin)),
+            'total_in_loans' => PriceUtils::format($this->getTotalInLoans($admin)),
             'main_charts' => [
                 [
                     'id' => 'this_month',
                     'title' => 'This Month',
-                    'chart'=> $this->getTotalsChart('first day of this month', 'day'),
+                    'chart'=> $this->getTotalsChart('first day of this month', 'day', $admin),
                 ],
                 [
                     'id' => 'last_6_months',
                     'title' => 'Last 6 Months',
-                    'chart'=> $this->getTotalsChart('first day of 6 months ago', 'week'),
+                    'chart'=> $this->getTotalsChart('first day of 6 months ago', 'week', $admin),
                 ],
                 [
                     'id' => 'months_by_diff',
                     'title' => 'Months By Diff',
-                    'chart'=> $this->getMonthDiffChart(),
+                    'chart'=> $this->getMonthDiffChart($admin),
                 ],
             ],
-            'assets_by_balance_chart' => $this->getAssetsByBalanceChart(),
-            'assets_by_currency_chart' => $this->getAssetsByCurrencyChart(),
-            'expenses_by_tag_chart' => $this->getExpensesByTagChart(),
+            'assets_by_balance_chart' => $this->getAssetsByBalanceChart($admin),
+            'assets_by_currency_chart' => $this->getAssetsByCurrencyChart($admin),
+            'expenses_by_tag_chart' => $this->getExpensesByTagChart($admin),
         ]);
     }
 
@@ -147,10 +154,10 @@ class DashboardController extends AbstractDashboardController
         ;
     }
 
-    private function getGrandTotal(): float
+    private function getGrandTotal(Admin $admin): float
     {
-        $balances = $this->balanceRepository->findAll();
-        $depositTotal = $this->getTotalInDeposits();
+        $balances = $this->balanceRepository->findByAdmin($admin);
+        $depositTotal = $this->getTotalInDeposits($admin);
         $total = 0;
 
         foreach ($balances as $balance) {
@@ -160,9 +167,9 @@ class DashboardController extends AbstractDashboardController
         return $total + $depositTotal;
     }
 
-    private function getTotalInDeposits(): float
+    private function getTotalInDeposits(Admin $admin): float
     {
-        $deposits = $this->depositRepository->findAllActive();
+        $deposits = $this->depositRepository->findAllActive($admin);
         $totalInDeposits = 0;
 
         foreach ($deposits as $deposit) {
@@ -172,9 +179,9 @@ class DashboardController extends AbstractDashboardController
         return $totalInDeposits;
     }
 
-    private function getTotalInLoans(): float
+    private function getTotalInLoans(Admin $admin): float
     {
-        $loans = $this->loanRepository->findAll();
+        $loans = $this->loanRepository->findByAdmin($admin);
         $totalInLoans = 0;
 
         foreach ($loans as $loan) {
@@ -184,9 +191,9 @@ class DashboardController extends AbstractDashboardController
         return $totalInLoans;
     }
 
-    private function getTotalInInvestments(): float
+    private function getTotalInInvestments(Admin $admin): float
     {
-        $investments = $this->investmentRepository->findAll();
+        $investments = $this->investmentRepository->findByAdmin($admin);
         $totalInInvestments = 0;
 
         foreach ($investments as $investment) {
@@ -196,10 +203,10 @@ class DashboardController extends AbstractDashboardController
         return $totalInInvestments;
     }
 
-    private function getIncomesThisMonth(): float
+    private function getIncomesThisMonth(Admin $admin): float
     {
         $day = new \DateTime('first day of this month 00:00:00');
-        $incomes = $this->incomeRepository->findAfterDate($day);
+        $incomes = $this->incomeRepository->findAfterDate($day, $admin);
         $incomesThisMonth = 0;
 
         foreach ($incomes as $income) {
@@ -209,10 +216,10 @@ class DashboardController extends AbstractDashboardController
         return $incomesThisMonth;
     }
 
-    private function getExpensesThisMonth(): float
+    private function getExpensesThisMonth(Admin $admin): float
     {
         $day = new \DateTime('first day of this month 00:00:00');
-        $payments = $this->paymentRepository->findAfterDate($day);
+        $payments = $this->paymentRepository->findAfterDate($day, $admin);
         $expensesThisMonth = 0;
 
         foreach ($payments as $payment) {
@@ -222,18 +229,19 @@ class DashboardController extends AbstractDashboardController
         return $expensesThisMonth;
     }
 
-    private function getTotalsChart(string $startDay, string $step): Chart
+    private function getTotalsChart(string $startDay, string $step, Admin $admin): Chart
     {
         $now = (new \DateTime())->format('j');
+        $userId = $admin->getId();
 
         $records = $this->cache->get(
-            'totals_' . str_replace(' ', '_', $startDay) . '+' . $step . '__' . $now,
-            function (ItemInterface $item) use ($startDay, $step) {
+            'totals_' . $userId . '_' . str_replace(' ', '_', $startDay) . '+' . $step . '__' . $now,
+            function (ItemInterface $item) use ($startDay, $step, $admin) {
                 $item->expiresAfter(86400);
-                $item->tag(self::DASHBOARD_CACHE_TAG);
+                $item->tag(self::getCacheTag($admin));
 
-                $balances = $this->balanceRepository->findAll();
-                $depositTotal = $this->getTotalInDeposits();
+                $balances = $this->balanceRepository->findByAdmin($admin);
+                $depositTotal = $this->getTotalInDeposits($admin);
 
                 $day = new \DateTime("$startDay 00:00:00");
                 $today = new \DateTime();
@@ -280,15 +288,16 @@ class DashboardController extends AbstractDashboardController
         return $chart;
     }
 
-    private function getMonthDiffChart(): Chart
+    private function getMonthDiffChart(Admin $admin): Chart
     {
         $now = (new \DateTime())->format('j');
+        $userId = $admin->getId();
 
-        $records = $this->cache->get('months_by_diff__' . $now, function (ItemInterface $item) {
+        $records = $this->cache->get('months_by_diff_' . $userId . '__' . $now, function (ItemInterface $item) use ($admin) {
             $item->expiresAfter(86400);
-            $item->tag(self::DASHBOARD_CACHE_TAG);
+            $item->tag(self::getCacheTag($admin));
 
-            $balances = $this->balanceRepository->findAll();
+            $balances = $this->balanceRepository->findByAdmin($admin);
 
             $day = new \DateTime('first day of 6 months ago 00:00:00');
             $today = new \DateTime();
@@ -335,24 +344,16 @@ class DashboardController extends AbstractDashboardController
         return $chart;
     }
 
-    private function getAssetsByBalanceChart(): Chart
+    private function getAssetsByBalanceChart(Admin $admin): Chart
     {
         $now = (new \DateTime())->format('j');
+        $userId = $admin->getId();
 
-        $data = $this->cache->get('assets_by_balance__' . $now, function (ItemInterface $item) {
+        $data = $this->cache->get('assets_by_balance_' . $userId . '__' . $now, function (ItemInterface $item) use ($admin) {
             $item->expiresAfter(86400);
-            $item->tag(self::DASHBOARD_CACHE_TAG);
+            $item->tag(self::getCacheTag($admin));
 
-            $balances = $this->balanceRepository->findAll();
-            $chart1 = $this->chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
-            $chart1->setData([
-                'labels' => array_map(fn(Balance $balance) => $balance->__toString(), $balances),
-                'datasets' => [
-                    [
-                        'data' => array_map(fn(Balance $balance) => number_format($balance->getAmountInUsd(), 2, '.', ''), $balances),
-                    ],
-                ],
-            ]);
+            $balances = $this->balanceRepository->findByAdmin($admin);
 
             $data = array_map(function (Balance $balance) {
                 return [
@@ -369,15 +370,16 @@ class DashboardController extends AbstractDashboardController
         return $this->getDoughnutChart($data, 'Assets by balance (in USD)');
     }
 
-    private function getAssetsByCurrencyChart(): Chart
+    private function getAssetsByCurrencyChart(Admin $admin): Chart
     {
         $now = (new \DateTime())->format('j');
+        $userId = $admin->getId();
 
-        $data = $this->cache->get('assets_by_currency__' . $now, function (ItemInterface $item) {
+        $data = $this->cache->get('assets_by_currency_' . $userId . '__' . $now, function (ItemInterface $item) use ($admin) {
             $item->expiresAfter(86400);
-            $item->tag(self::DASHBOARD_CACHE_TAG);
+            $item->tag(self::getCacheTag($admin));
 
-            $currencies = $this->currencyRepository->findAll();
+            $currencies = $this->currencyRepository->findBy(['admin' => $admin]);
 
             $data = array_map(function (Currency $currency) {
                 $balances = $currency->getBalances();
@@ -401,17 +403,18 @@ class DashboardController extends AbstractDashboardController
         return $this->getDoughnutChart($data, 'Assets by currency (in USD)');
     }
 
-    private function getExpensesByTagChart(): Chart
+    private function getExpensesByTagChart(Admin $admin): Chart
     {
         $now = (new \DateTime())->format('j');
+        $userId = $admin->getId();
 
-        $data = $this->cache->get('expenses_by_tag__' . $now, function (ItemInterface $item) {
+        $data = $this->cache->get('expenses_by_tag_' . $userId . '__' . $now, function (ItemInterface $item) use ($admin) {
             $item->expiresAfter(86400);
-            $item->tag(self::DASHBOARD_CACHE_TAG);
+            $item->tag(self::getCacheTag($admin));
 
             $dateFrom = new \DateTime('first day of 6 months ago 00:00:00');
 
-            $payments = $this->paymentRepository->findAfterDate($dateFrom);
+            $payments = $this->paymentRepository->findAfterDate($dateFrom, $admin);
             $totalExpenses = 0;
             $tags = [];
 

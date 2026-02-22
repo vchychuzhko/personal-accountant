@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Admin;
 use App\Entity\Configuration;
 use App\Entity\Investment;
 use App\Entity\Payment;
@@ -10,6 +11,7 @@ use App\Repository\InvestmentRepository;
 use App\Utils\PriceUtils;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
@@ -45,6 +47,9 @@ class InvestmentCrudController extends AbstractCrudController
     ): QueryBuilder {
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
+        $qb->andWhere('entity.admin = :admin')
+            ->setParameter('admin', $this->getUser());
+
         $sortFields = $searchDto->getSort();
 
         if (isset($sortFields['value'])) {
@@ -57,6 +62,16 @@ class InvestmentCrudController extends AbstractCrudController
         return $qb;
     }
 
+    public function createEntity(string $entityFqcn): Investment
+    {
+        $entity = new Investment();
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $entity->setAdmin($admin);
+
+        return $entity;
+    }
+
     public function configureFields(string $pageName): iterable
     {
         return [
@@ -65,7 +80,14 @@ class InvestmentCrudController extends AbstractCrudController
             TextField::new('name'),
             NumberField::new('share')
                 ->setNumDecimals(4),
-            AssociationField::new('currency'),
+            AssociationField::new('currency')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) {
+                        return $repository->createQueryBuilder('c')
+                            ->andWhere('c.admin = :admin')
+                            ->setParameter('admin', $this->getUser());
+                    },
+                ]),
             NumberField::new('price')
                 ->formatValue(function ($value, Investment $entity) {
                     $currency = $entity->getCurrency();
@@ -143,7 +165,9 @@ class InvestmentCrudController extends AbstractCrudController
         /** @var ConfigurationRepository $configRepository */
         $configRepository = $entityManager->getRepository(Configuration::class);
 
-        $apiKey = $configRepository->getByName('stocks_api/key');
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $apiKey = $configRepository->getByName('stocks_api/key', $admin);
 
         if (!$apiKey) {
             throw new \LogicException('Stocks API Key is not set');
@@ -152,7 +176,7 @@ class InvestmentCrudController extends AbstractCrudController
         /** @var InvestmentRepository $investmentRepository */
         $investmentRepository = $entityManager->getRepository(Investment::class);
 
-        $investments = $investmentRepository->findAll();
+        $investments = $investmentRepository->findByAdmin($admin);
 
         if (!\count($investments)) {
             throw new \LogicException('No investments yet');

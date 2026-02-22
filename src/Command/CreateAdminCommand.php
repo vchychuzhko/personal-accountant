@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\Admin;
+use App\Service\UserConfigurationInitializer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -21,6 +22,7 @@ class CreateAdminCommand extends Command
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly UserConfigurationInitializer $configInitializer,
     ) {
         parent::__construct();
     }
@@ -46,6 +48,8 @@ class CreateAdminCommand extends Command
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+
+        $this->configInitializer->initialize($user);
 
         $io->success('Admin user successfully created!');
 

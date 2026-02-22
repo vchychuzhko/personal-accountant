@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Admin;
 use App\Repository\CurrencyRepository;
 use App\Repository\PaymentRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -28,40 +29,43 @@ class AnalyzeController extends AbstractController
     #[Route(path: '/admin/analyze', name: 'admin_analyze')]
     public function index(Request $request): Response
     {
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+
         $sortBy = $request->get('sort', 'total');
 
         $thisMonth = (new \DateTime('first day of this month 00:00:00'))->format('F Y');
         $lastMonth = (new \DateTime('first day of last month 00:00:00'))->format('F Y');
 
         return $this->render('admin/analyze.html.twig', [
-            'currencies' => $this->currencyRepository->findAll(),
+            'currencies' => $this->currencyRepository->findBy(['admin' => $admin]),
             'sort_by' => $sortBy,
             'months' => [
                 [
                     'id' => 'this_month',
                     'title' => 'This Month',
-                    'total_expenses' => $this->getTotalExpensesByMonth($thisMonth),
-                    'payments_count' => $this->getPaymentsCount($thisMonth),
+                    'total_expenses' => $this->getTotalExpensesByMonth($thisMonth, $admin),
+                    'payments_count' => $this->getPaymentsCount($thisMonth, $admin),
                     'payments_url' => $this->getPaymentsUrlByMonth($thisMonth),
-                    'tags' => $this->getExpensesByTagByMonth($thisMonth, $sortBy),
-                    'expenses_by_tag_chart' => $this->getExpensesByTagByMonthChart($thisMonth),
+                    'tags' => $this->getExpensesByTagByMonth($thisMonth, $admin, $sortBy),
+                    'expenses_by_tag_chart' => $this->getExpensesByTagByMonthChart($thisMonth, $admin),
                 ],
                 [
                     'id' => 'last_month',
                     'title' => $lastMonth,
-                    'total_expenses' => $this->getTotalExpensesByMonth($lastMonth),
-                    'payments_count' => $this->getPaymentsCount($lastMonth),
+                    'total_expenses' => $this->getTotalExpensesByMonth($lastMonth, $admin),
+                    'payments_count' => $this->getPaymentsCount($lastMonth, $admin),
                     'payments_url' => $this->getPaymentsUrlByMonth($lastMonth),
-                    'tags' => $this->getExpensesByTagByMonth($lastMonth, $sortBy),
-                    'expenses_by_tag_chart' => $this->getExpensesByTagByMonthChart($lastMonth),
+                    'tags' => $this->getExpensesByTagByMonth($lastMonth, $admin, $sortBy),
+                    'expenses_by_tag_chart' => $this->getExpensesByTagByMonthChart($lastMonth, $admin),
                 ],
             ],
         ]);
     }
 
-    private function getTotalExpensesByMonth(string $monthKey): float
+    private function getTotalExpensesByMonth(string $monthKey, Admin $admin): float
     {
-        $tags = $this->getExpensesByTagByMonth($monthKey);
+        $tags = $this->getExpensesByTagByMonth($monthKey, $admin);
         $total = 0;
 
         foreach ($tags as $tag) {
@@ -71,13 +75,13 @@ class AnalyzeController extends AbstractController
         return $total;
     }
 
-    private function getPaymentsCount(string $monthKey): int
+    private function getPaymentsCount(string $monthKey, Admin $admin): int
     {
         $dateFrom = new \DateTime("first day of $monthKey 00:00:00");
         $dateTo = clone $dateFrom;
         $dateTo = $dateTo->modify('+1 month');
 
-        $payments = $this->paymentRepository->findBetweenDates($dateFrom, $dateTo);
+        $payments = $this->paymentRepository->findBetweenDates($dateFrom, $dateTo, $admin);
 
         return count($payments);
     }
@@ -91,18 +95,19 @@ class AnalyzeController extends AbstractController
         return $this->getPaymentsUrlByTagAndCreatedAt($dateFrom, $dateTo);
     }
 
-    private function getExpensesByTagByMonth(string $monthKey, ?string $sortBy = null): array
+    private function getExpensesByTagByMonth(string $monthKey, Admin $admin, ?string $sortBy = null): array
     {
+        $userId = $admin->getId();
         $data = $this->cache->get(
-            'expenses_by_tag__' . str_replace(' ', '_', $monthKey),
-            function (ItemInterface $item) use ($monthKey) {
-                $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
+            'expenses_by_tag_' . $userId . '__' . str_replace(' ', '_', $monthKey),
+            function (ItemInterface $item) use ($monthKey, $admin) {
+                $item->tag(DashboardController::getCacheTag($admin));
 
                 $dateFrom = new \DateTime("first day of $monthKey 00:00:00");
                 $dateTo = clone $dateFrom;
                 $dateTo = $dateTo->modify('+1 month');
 
-                $payments = $this->paymentRepository->findBetweenDates($dateFrom, $dateTo);
+                $payments = $this->paymentRepository->findBetweenDates($dateFrom, $dateTo, $admin);
                 $data = [];
 
                 foreach ($payments as $payment) {
@@ -157,15 +162,16 @@ class AnalyzeController extends AbstractController
         return $url->generateUrl();
     }
 
-    private function getExpensesByTagByMonthChart(string $monthKey): Chart
+    private function getExpensesByTagByMonthChart(string $monthKey, Admin $admin): Chart
     {
+        $userId = $admin->getId();
         $data = $this->cache->get(
-            'expenses_by_tag_chart__' . str_replace(' ', '_', $monthKey),
-            function (ItemInterface $item) use ($monthKey) {
-                $item->tag(DashboardController::DASHBOARD_CACHE_TAG);
+            'expenses_by_tag_chart_' . $userId . '__' . str_replace(' ', '_', $monthKey),
+            function (ItemInterface $item) use ($monthKey, $admin) {
+                $item->tag(DashboardController::getCacheTag($admin));
 
-                $tags = $this->getExpensesByTagByMonth($monthKey);
-                $totalExpenses = $this->getTotalExpensesByMonth($monthKey);
+                $tags = $this->getExpensesByTagByMonth($monthKey, $admin);
+                $totalExpenses = $this->getTotalExpensesByMonth($monthKey, $admin);
 
                 $data = array_map(function ($tag) use ($totalExpenses) {
                     return [

@@ -2,13 +2,20 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Admin;
 use App\Entity\Exchange;
 use App\Repository\ConfigurationRepository;
 use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\QueryBuilder;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
@@ -27,13 +34,44 @@ class ExchangeCrudController extends AbstractCrudController
         return Exchange::class;
     }
 
+    public function createIndexQueryBuilder(
+        SearchDto $searchDto,
+        EntityDto $entityDto,
+        FieldCollection $fields,
+        FilterCollection $filters
+    ): QueryBuilder {
+        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+
+        $qb->join('entity.balance_from', 'bf')
+            ->andWhere('bf.admin = :admin')
+            ->setParameter('admin', $this->getUser());
+
+        return $qb;
+    }
+
     public function configureFields(string $pageName): iterable
     {
-        $timezone = $this->configurationRepository->getByName('timezone');
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $timezone = $this->configurationRepository->getByName('timezone', $admin);
 
         return [
-            AssociationField::new('balance_from'),
-            AssociationField::new('balance_to'),
+            AssociationField::new('balance_from')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) {
+                        return $repository->createQueryBuilder('b')
+                            ->andWhere('b.admin = :admin')
+                            ->setParameter('admin', $this->getUser());
+                    },
+                ]),
+            AssociationField::new('balance_to')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) {
+                        return $repository->createQueryBuilder('b')
+                            ->andWhere('b.admin = :admin')
+                            ->setParameter('admin', $this->getUser());
+                    },
+                ]),
             NumberField::new('amount')
                 ->formatValue(function ($value, Exchange $entity) {
                     $currency = $entity->getBalanceFrom()->getCurrency();
@@ -91,7 +129,9 @@ class ExchangeCrudController extends AbstractCrudController
         $entityManager->persist($balanceTo);
         $entityManager->flush();
 
-        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $this->cache->invalidateTags([DashboardController::getCacheTag($admin)]);
 
         parent::persistEntity($entityManager, $entityInstance);
     }

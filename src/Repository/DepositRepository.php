@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Admin;
 use App\Entity\Deposit;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,11 +20,14 @@ class DepositRepository extends ServiceEntityRepository
     /**
      * @return Deposit[] Returns an array of Deposit objects
      */
-    public function findAllActive(): array
+    public function findAllActive(Admin $admin): array
     {
         return $this->createQueryBuilder('d')
+            ->join('d.balance', 'b')
             ->andWhere('d.status = :val')
+            ->andWhere('b.admin = :admin')
             ->setParameter('val', Deposit::STATUS_ACTIVE)
+            ->setParameter('admin', $admin)
             ->getQuery()
             ->getResult()
         ;

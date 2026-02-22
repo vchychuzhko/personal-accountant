@@ -2,10 +2,12 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Admin;
 use App\Entity\Income;
 use App\Repository\ConfigurationRepository;
 use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
@@ -16,7 +18,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -42,13 +43,16 @@ class IncomeCrudController extends AbstractCrudController
     ): QueryBuilder {
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
+        $qb->join('entity.balance', 'b')
+            ->andWhere('b.admin = :admin')
+            ->setParameter('admin', $this->getUser());
+
         $sortFields = $searchDto->getSort();
 
         if (isset($sortFields['amount_in_usd'])) {
             $sortDirection = $sortFields['amount_in_usd'];
 
-            $qb->leftJoin('entity.balance', 'balance')
-                ->leftJoin('balance.currency', 'currency')
+            $qb->leftJoin('b.currency', 'currency')
                 ->addSelect('(entity.amount / currency.rate) AS HIDDEN amount_in_usd')
                 ->orderBy('amount_in_usd', $sortDirection);
         }
@@ -58,13 +62,20 @@ class IncomeCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        $timezone = $this->configurationRepository->getByName('timezone');
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $timezone = $this->configurationRepository->getByName('timezone', $admin);
 
         return [
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('name'),
-            AssociationField::new('balance'),
+            AssociationField::new('balance')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) {
+                        return $repository->createQueryBuilder('b')
+                            ->andWhere('b.admin = :admin')
+                            ->setParameter('admin', $this->getUser());
+                    },
+                ]),
             NumberField::new('amount')
                 ->formatValue(function ($value, Income $entity) {
                     $currency = $entity->getBalance()->getCurrency();
@@ -115,7 +126,9 @@ class IncomeCrudController extends AbstractCrudController
         $entityManager->persist($balance);
         $entityManager->flush();
 
-        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
+        /** @var Admin $admin */
+        $admin = $this->getUser();
+        $this->cache->invalidateTags([DashboardController::getCacheTag($admin)]);
 
         parent::persistEntity($entityManager, $entityInstance);
     }

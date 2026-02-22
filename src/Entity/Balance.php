@@ -22,6 +22,10 @@ class Balance
     #[ORM\JoinColumn(nullable: false)]
     private ?Currency $currency = null;
 
+    #[ORM\ManyToOne(targetEntity: Admin::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Admin $admin = null;
+
     #[ORM\Column]
     private ?float $amount = null;
 
@@ -303,6 +307,18 @@ class Balance
                 $exchange->setBalanceTo(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAdmin(): ?Admin
+    {
+        return $this->admin;
+    }
+
+    public function setAdmin(?Admin $admin): static
+    {
+        $this->admin = $admin;
 
         return $this;
     }
