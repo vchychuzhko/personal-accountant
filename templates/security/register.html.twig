@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Register{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('app.css', 'easyadmin.assets.package') }}">
@@ -12,31 +12,31 @@
             justify-content: center;
             margin: 0;
         }
-        .form-login {
+        .form-register {
             max-width: 320px;
             text-align: center;
             width: 100%;
         }
-        .form-login input {
+        .form-register input {
             position: relative;
         }
-        .form-login input[name="_username"] {
+        .form-register input[name="_username"] {
             border-bottom-left-radius: 0;
             border-bottom-right-radius: 0;
             margin-bottom: -1px;
         }
-        .form-login input[name="_password"] {
+        .form-register input[name="_password"] {
             border-top-left-radius: 0;
             border-top-right-radius: 0;
         }
-        .form-login input:focus {
+        .form-register input:focus {
             z-index: 1;
         }
     </style>
 {% endblock %}
 
 {% block body %}
-    <form class="form-login" action="{{ path('app_login') }}" method="post">
+    <form class="form-register" action="{{ path('app_register') }}" method="post">
         <img class="mb-3" src="{{ asset('favicon.svg') }}" alt="Personal Accountant" width="72" height="72">
 
         {% for label, messages in app.flashes %}
@@ -47,30 +47,14 @@
             {% endfor %}
         {% endfor %}
 
-        {% if error %}
-            <p class="text-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</p>
-        {% endif %}
-
         <label class="sr-only" for="username">Username</label>
-        <input class="form-control w-100 py-2" type="text" id="username" name="_username" placeholder="Username" value="{{ last_username }}" required autofocus>
+        <input class="form-control w-100 py-2" type="text" id="username" name="_username" placeholder="Username" required autofocus>
 
         <label class="sr-only" for="password">Password</label>
         <input class="form-control w-100 py-2" type="password" id="password" name="_password" placeholder="Password" required>
 
-        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-
-        {#
-            Uncomment this section and add a remember_me option below your firewall to activate remember me functionality.
-            See https://symfony.com/doc/current/security/remember_me.html
-
-            <label>
-                <input type="checkbox" name="_remember_me" checked>
-                Keep me logged in
-            </label>
-        #}
-
         <button class="btn btn-primary w-100 mt-3 py-4 fs-5 justify-content-center">
-            Login
+            Register
         </button>
 
         <p class="mt-5 mb-3 text-muted">
