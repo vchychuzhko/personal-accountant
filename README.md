@@ -2,7 +2,7 @@
 
 App to keep all balances and transactions organized.
 
-*Do not trust anyone, host only locally*
+> Do not trust anyone, selfhost
 
 Demo - https://pa-demo.vchychuzhko.com
 
@@ -14,6 +14,7 @@ Demo - https://pa-demo.vchychuzhko.com
   - [Install Packages](#install-packages)
   - [Generate Assets](#generate-assets)
   - [Create Admin User](#create-admin-user)
+  - [Docker](#docker)
 - [Usage](#usage)
   - [Web](#web)
   - [Entities](#entities)
@@ -25,12 +26,12 @@ Demo - https://pa-demo.vchychuzhko.com
 
 - PHP 8.4
 - Composer 2
-- MySQL 8
+- MariaDB 10.11
 - Node 22
 
 ### Set local variables
 
-Set MySQL credentials in `.env.local` file.
+Set database credentials in `.env.local` file.
 
 ```bash
 cp .env .env.local
@@ -64,6 +65,16 @@ To create initial admin user, use this command:
 php bin/console app:create-admin
 ```
 
+### Docker
+
+There is an official production-ready image you can use for local deployment - [Docker Hub](https://hub.docker.com/r/vchychuzhko/personal-accountant).
+
+[docker-compose.prod.yml](./docker-compose.prod.yml) contains a ready-to-use configuration, that can be used in, for example, Portainer Stack.
+
+Pay attention to default values:
+- Database credentials: `app:app`
+- Port: `8996`
+
 ## Usage
 
 ### Web
@@ -94,10 +105,16 @@ Panel is available by default at - https://&lt;your-localhost&gt;/admin
 
 ### Commands
 
-#### Align Payment IDs according to created_at field
+#### Create admin user
 
 ```bash
-php bin/console app:fix-payment-ids
+php bin/console app:create-admin
+```
+
+#### Align Payment or Income IDs according to created_at field
+
+```bash
+php bin/console app:sync-ids <payment|income>
 ```
 
 *Database backup is recommended before running this command*
