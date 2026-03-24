@@ -7,9 +7,11 @@ use App\Entity\Currency;
 use App\Repository\ConfigurationRepository;
 use App\Repository\CurrencyRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
@@ -24,6 +26,14 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class CurrencyCrudController extends AbstractCrudController
 {
     private const CURRENCY_API_LATEST_ENDPOINT = 'https://api.currencyapi.com/v3/latest';
+
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly HttpClientInterface $client,
+        private readonly AdminUrlGenerator $adminUrlGenerator,
+        private readonly TagAwareCacheInterface $cache,
+    ) {
+    }
 
     public static function getEntityFqcn(): string
     {
@@ -69,20 +79,18 @@ class CurrencyCrudController extends AbstractCrudController
             ->createAsGlobalAction();
 
         return parent::configureActions($actions)
-            ->add(Crud::PAGE_INDEX, $updateRates);
+            ->add(Crud::PAGE_INDEX, $updateRates)
+        ;
     }
 
     /**
      * @see https://currencyapi.com/docs/latest
      */
-    public function updateRates(
-        EntityManagerInterface $entityManager,
-        HttpClientInterface $client,
-        AdminUrlGenerator $adminUrlGenerator,
-        TagAwareCacheInterface $cache
-    ): RedirectResponse {
+    #[AdminRoute('/update-rates')]
+    public function updateRates(AdminContext $context): RedirectResponse
+    {
         /** @var ConfigurationRepository $configRepository */
-        $configRepository = $entityManager->getRepository(Configuration::class);
+        $configRepository = $this->entityManager->getRepository(Configuration::class);
 
         $apiKey = $configRepository->getByName('currency_api/key');
 
@@ -91,7 +99,7 @@ class CurrencyCrudController extends AbstractCrudController
         }
 
         /** @var CurrencyRepository $currencyRepository */
-        $currencyRepository = $entityManager->getRepository(Currency::class);
+        $currencyRepository = $this->entityManager->getRepository(Currency::class);
 
         $currencies = $currencyRepository->findNonUsd();
 
@@ -99,7 +107,7 @@ class CurrencyCrudController extends AbstractCrudController
             . '?currencies=' . join(',', array_map(fn(Currency $currency) => $currency->getCode(), $currencies))
             . '&apikey=' . $apiKey;
 
-        $response = $client->request('GET', $url);
+        $response = $this->client->request('GET', $url);
 
         if ($response->getStatusCode() !== 200) {
             throw new \LogicException('Currency API request error');
@@ -110,17 +118,16 @@ class CurrencyCrudController extends AbstractCrudController
         foreach ($currencies as $currency) {
             $currency->setRate($content['data'][$currency->getCode()]['value']);
 
-            $entityManager->persist($currency);
+            $this->entityManager->persist($currency);
         }
 
-        $entityManager->flush();
+        $this->entityManager->flush();
 
-        $cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
+        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
         $this->addFlash('success', 'Rates are successfully updated');
 
-        $targetUrl = $adminUrlGenerator
-            ->setController(self::class)
+        $targetUrl = $this->adminUrlGenerator
             ->setAction(Crud::PAGE_INDEX)
             ->generateUrl();
 

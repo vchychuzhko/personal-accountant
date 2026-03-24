@@ -11,12 +11,14 @@ use App\Utils\PriceUtils;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
@@ -31,6 +33,13 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class InvestmentCrudController extends AbstractCrudController
 {
     private const STOCKS_API_REALTIME_ENDPOINT = 'https://eodhd.com/api/real-time/';
+
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly HttpClientInterface $client,
+        private readonly AdminUrlGenerator $adminUrlGenerator,
+    ) {
+    }
 
     public static function getEntityFqcn(): string
     {
@@ -129,19 +138,17 @@ class InvestmentCrudController extends AbstractCrudController
             ->createAsGlobalAction();
 
         return parent::configureActions($actions)
-            ->add(Crud::PAGE_INDEX, $updateRates);
+            ->add(Crud::PAGE_INDEX, $updateRates)
+        ;
     }
 
     /**
      * @see https://eodhd.com/financial-apis/live-ohlcv-stocks-api
      */
-    public function updatePrices(
-        EntityManagerInterface $entityManager,
-        HttpClientInterface $client,
-        AdminUrlGenerator $adminUrlGenerator,
-    ): RedirectResponse {
+    #[AdminRoute('/update-prices')]
+    public function updatePrices(AdminContext $context): RedirectResponse {
         /** @var ConfigurationRepository $configRepository */
-        $configRepository = $entityManager->getRepository(Configuration::class);
+        $configRepository = $this->entityManager->getRepository(Configuration::class);
 
         $apiKey = $configRepository->getByName('stocks_api/key');
 
@@ -150,7 +157,7 @@ class InvestmentCrudController extends AbstractCrudController
         }
 
         /** @var InvestmentRepository $investmentRepository */
-        $investmentRepository = $entityManager->getRepository(Investment::class);
+        $investmentRepository = $this->entityManager->getRepository(Investment::class);
 
         $investments = $investmentRepository->findAll();
 
@@ -169,7 +176,7 @@ class InvestmentCrudController extends AbstractCrudController
             $url .= '&s=' . join(',', array_map(fn(Investment $investment) => $investment->getName(), $restInvestments));
         }
 
-        $response = $client->request('GET', $url);
+        $response = $this->client->request('GET', $url);
 
         if ($response->getStatusCode() !== 200) {
             throw new \LogicException('Stocks API request error');
@@ -185,15 +192,14 @@ class InvestmentCrudController extends AbstractCrudController
             $data = array_find($content, fn($item) => $item['code'] === $investment->getName());
             $investment->setPrice($data['close']);
 
-            $entityManager->persist($investment);
+            $this->entityManager->persist($investment);
         }
 
-        $entityManager->flush();
+        $this->entityManager->flush();
 
         $this->addFlash('success', 'Prices are successfully updated');
 
-        $targetUrl = $adminUrlGenerator
-            ->setController(self::class)
+        $targetUrl = $this->adminUrlGenerator
             ->setAction(Crud::PAGE_INDEX)
             ->generateUrl();
 

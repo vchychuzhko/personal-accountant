@@ -3,7 +3,7 @@
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
 {% if (field.value is empty) %}
     <span>-</span>
-{% elseif (ea.crud.currentAction == 'index') %}
+{% elseif (ea().crud.currentAction == 'index') %}
     <a href="{{ ea_url()
         .setController('App\\Controller\\Admin\\InvestmentCrudController')
         .setAction('index')
