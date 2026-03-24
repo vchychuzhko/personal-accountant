@@ -106,7 +106,9 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(DepositCrudController::class, 'Deposit', 'fas fa-percent')
             ->setQueryParameter('filters[status][comparison]', '=')
             ->setQueryParameter('filters[status][value]', Deposit::STATUS_ACTIVE);
-        yield MenuItem::linkTo(InvestmentCrudController::class, 'Investment', 'fas fa-arrow-trend-up');
+        yield MenuItem::linkTo(InvestmentCrudController::class, 'Investment', 'fas fa-arrow-trend-up')
+            ->setQueryParameter('filters[share][comparison]', '>')
+            ->setQueryParameter('filters[share][value]', 0);
         yield MenuItem::linkTo(LoanCrudController::class, 'Loan', 'fas fa-sack-dollar');
         yield MenuItem::section();
         yield MenuItem::linkTo(CurrencyCrudController::class, 'Currency', 'fas fa-dollar');

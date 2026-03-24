@@ -120,6 +120,7 @@ class InvestmentCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
+            ->add('share')
             ->add('currency')
         ;
     }
