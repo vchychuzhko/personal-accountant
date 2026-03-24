@@ -89,43 +89,47 @@ class CurrencyCrudController extends AbstractCrudController
     #[AdminRoute('/update-rates')]
     public function updateRates(AdminContext $context): RedirectResponse
     {
-        /** @var ConfigurationRepository $configRepository */
-        $configRepository = $this->entityManager->getRepository(Configuration::class);
+        try {
+            /** @var ConfigurationRepository $configRepository */
+            $configRepository = $this->entityManager->getRepository(Configuration::class);
 
-        $apiKey = $configRepository->getByName('currency_api/key');
+            $apiKey = $configRepository->getByName('currency_api/key');
 
-        if (!$apiKey) {
-            throw new \LogicException('Currency API Key is not set');
+            if (!$apiKey) {
+                throw new \LogicException('Currency API Key is not set');
+            }
+
+            /** @var CurrencyRepository $currencyRepository */
+            $currencyRepository = $this->entityManager->getRepository(Currency::class);
+
+            $currencies = $currencyRepository->findNonUsd();
+
+            $url = self::CURRENCY_API_LATEST_ENDPOINT
+                . '?currencies=' . join(',', array_map(fn(Currency $currency) => $currency->getCode(), $currencies))
+                . '&apikey=' . $apiKey;
+
+            $response = $this->client->request('GET', $url);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new \LogicException('Currency API request error');
+            }
+
+            $content = $response->toArray();
+
+            foreach ($currencies as $currency) {
+                $currency->setRate($content['data'][$currency->getCode()]['value']);
+
+                $this->entityManager->persist($currency);
+            }
+
+            $this->entityManager->flush();
+
+            $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
+
+            $this->addFlash('success', 'Rates are successfully updated');
+        } catch (\LogicException $e) {
+            $this->addFlash('error', $e->getMessage());
         }
-
-        /** @var CurrencyRepository $currencyRepository */
-        $currencyRepository = $this->entityManager->getRepository(Currency::class);
-
-        $currencies = $currencyRepository->findNonUsd();
-
-        $url = self::CURRENCY_API_LATEST_ENDPOINT
-            . '?currencies=' . join(',', array_map(fn(Currency $currency) => $currency->getCode(), $currencies))
-            . '&apikey=' . $apiKey;
-
-        $response = $this->client->request('GET', $url);
-
-        if ($response->getStatusCode() !== 200) {
-            throw new \LogicException('Currency API request error');
-        }
-
-        $content = $response->toArray();
-
-        foreach ($currencies as $currency) {
-            $currency->setRate($content['data'][$currency->getCode()]['value']);
-
-            $this->entityManager->persist($currency);
-        }
-
-        $this->entityManager->flush();
-
-        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
-
-        $this->addFlash('success', 'Rates are successfully updated');
 
         $targetUrl = $this->adminUrlGenerator
             ->setAction(Crud::PAGE_INDEX)

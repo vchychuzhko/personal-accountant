@@ -147,57 +147,61 @@ class InvestmentCrudController extends AbstractCrudController
      */
     #[AdminRoute('/update-prices')]
     public function updatePrices(AdminContext $context): RedirectResponse {
-        /** @var ConfigurationRepository $configRepository */
-        $configRepository = $this->entityManager->getRepository(Configuration::class);
+        try {
+            /** @var ConfigurationRepository $configRepository */
+            $configRepository = $this->entityManager->getRepository(Configuration::class);
 
-        $apiKey = $configRepository->getByName('stocks_api/key');
+            $apiKey = $configRepository->getByName('stocks_api/key');
 
-        if (!$apiKey) {
-            throw new \LogicException('Stocks API Key is not set');
+            if (!$apiKey) {
+                throw new \LogicException('Stocks API Key is not set');
+            }
+
+            /** @var InvestmentRepository $investmentRepository */
+            $investmentRepository = $this->entityManager->getRepository(Investment::class);
+
+            $investments = $investmentRepository->findAll();
+
+            if (!\count($investments)) {
+                throw new \LogicException('No investments yet');
+            }
+
+            $mainInvestment = $investments[0];
+            $restInvestments = array_slice($investments, 1);
+
+            $url = self::STOCKS_API_REALTIME_ENDPOINT . $mainInvestment->getName()
+                . '?api_token=' . $apiKey
+                . '&fmt=json';
+
+            if (count($restInvestments)) {
+                $url .= '&s=' . join(',', array_map(fn(Investment $investment) => $investment->getName(), $restInvestments));
+            }
+
+            $response = $this->client->request('GET', $url);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new \LogicException('Stocks API request error');
+            }
+
+            $content = $response->toArray();
+
+            if (!array_is_list($content)) {
+                $content = [$content];
+            }
+
+            foreach ($investments as $investment) {
+                $data = array_find($content, fn($item) => $item['code'] === $investment->getName());
+                $investment->setPrice($data['close']);
+
+                $this->entityManager->persist($investment);
+            }
+
+            $this->entityManager->flush();
+
+            $this->addFlash('success', 'Prices are successfully updated');
+        } catch (\LogicException $e) {
+            $this->addFlash('error', $e->getMessage());
         }
-
-        /** @var InvestmentRepository $investmentRepository */
-        $investmentRepository = $this->entityManager->getRepository(Investment::class);
-
-        $investments = $investmentRepository->findAll();
-
-        if (!\count($investments)) {
-            throw new \LogicException('No investments yet');
-        }
-
-        $mainInvestment = $investments[0];
-        $restInvestments = array_slice($investments, 1);
-
-        $url = self::STOCKS_API_REALTIME_ENDPOINT . $mainInvestment->getName()
-            . '?api_token=' . $apiKey
-            . '&fmt=json';
-
-        if (count($restInvestments)) {
-            $url .= '&s=' . join(',', array_map(fn(Investment $investment) => $investment->getName(), $restInvestments));
-        }
-
-        $response = $this->client->request('GET', $url);
-
-        if ($response->getStatusCode() !== 200) {
-            throw new \LogicException('Stocks API request error');
-        }
-
-        $content = $response->toArray();
-
-        if (!array_is_list($content)) {
-            $content = [$content];
-        }
-
-        foreach ($investments as $investment) {
-            $data = array_find($content, fn($item) => $item['code'] === $investment->getName());
-            $investment->setPrice($data['close']);
-
-            $this->entityManager->persist($investment);
-        }
-
-        $this->entityManager->flush();
-
-        $this->addFlash('success', 'Prices are successfully updated');
 
         $targetUrl = $this->adminUrlGenerator
             ->setAction(Crud::PAGE_INDEX)

@@ -111,9 +111,9 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section();
         yield MenuItem::linkTo(CurrencyCrudController::class, 'Currency', 'fas fa-dollar');
         yield MenuItem::linkTo(TagCrudController::class, 'Tag', 'fas fa-tag');
+        yield MenuItem::linkToRoute('Applications', 'fas fa-calculator', 'admin_apps');
         yield MenuItem::section();
         yield MenuItem::linkTo(ConfigurationCrudController::class, 'Configuration', 'fas fa-gear');
-        yield MenuItem::linkToRoute('Applications', 'fas fa-calculator', 'admin_apps');
     }
 
     public function configureActions(): Actions

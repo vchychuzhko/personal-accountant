@@ -41,6 +41,7 @@ class ConfigurationCrudController extends AbstractCrudController
 
         return parent::configureActions($actions)
             ->add(Crud::PAGE_INDEX, $clearCache)
+            ->setPermission(Action::NEW, 'ROLE_BLOCKED')
             ->setPermission(Action::DELETE, 'ROLE_BLOCKED')
         ;
     }
