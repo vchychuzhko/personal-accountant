@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Configuration;
+use App\Entity\Income;
 use App\Entity\Investment;
 use App\Entity\Payment;
 use App\Repository\ConfigurationRepository;
@@ -104,13 +105,20 @@ class InvestmentCrudController extends AbstractCrudController
                 ->formatValue(function ($value, Investment $entity) {
                     $currency = $entity->getCurrency();
 
-                    return ($value > 0 ? '+' : '-') . PriceUtils::format(abs($value), $currency->getFormat());
+                    return ($value > 0 ? '+' : '') . ($value < 0 ? '-' : '') . PriceUtils::format(abs($value), $currency->getFormat());
                 })
                 ->hideOnForm(),
 
             FormField::addFieldset('Payments')
                 ->addCssClass('form-fieldset--no-labels'),
             AssociationField::new('payments')
+                ->setTemplatePath('admin/fields/payments_by_investment.html.twig')
+                ->autocomplete()
+                ->hideOnIndex(),
+
+            FormField::addFieldset('Incomes')
+                ->addCssClass('form-fieldset--no-labels'),
+            AssociationField::new('incomes')
                 ->setTemplatePath('admin/fields/payments_by_investment.html.twig')
                 ->autocomplete()
                 ->hideOnIndex(),
@@ -161,7 +169,7 @@ class InvestmentCrudController extends AbstractCrudController
             /** @var InvestmentRepository $investmentRepository */
             $investmentRepository = $this->entityManager->getRepository(Investment::class);
 
-            $investments = $investmentRepository->findAll();
+            $investments = $investmentRepository->findAllActive();
 
             if (!\count($investments)) {
                 throw new \LogicException('No investments yet');
@@ -218,7 +226,7 @@ class InvestmentCrudController extends AbstractCrudController
      */
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
-        $this->syncPayments($entityManager, $entityInstance);
+        $this->syncTransactions($entityManager, $entityInstance);
 
         parent::persistEntity($entityManager, $entityInstance);
     }
@@ -230,29 +238,31 @@ class InvestmentCrudController extends AbstractCrudController
      */
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
-        $this->syncPayments($entityManager, $entityInstance);
+        $this->syncTransactions($entityManager, $entityInstance);
 
         parent::updateEntity($entityManager, $entityInstance);
     }
 
-    private function syncPayments(EntityManagerInterface $entityManager, Investment $entityInstance): void
+    private function syncTransactions(EntityManagerInterface $entityManager, Investment $entityInstance): void
     {
         $currentPayments = new ArrayCollection($entityInstance->getPayments()->toArray());
+        $currentIncomes = new ArrayCollection($entityInstance->getIncomes()->toArray());
 
         $existingPayments = $entityManager->getRepository(Payment::class)->findBy(['investment' => $entityInstance]);
+        $existingIncomes = $entityManager->getRepository(Income::class)->findBy(['investment' => $entityInstance]);
 
         // Detach removed
-        foreach ($existingPayments as $existing) {
-            if (!$currentPayments->contains($existing)) {
+        foreach ([...$existingPayments, ...$existingIncomes] as $existing) {
+            if (!$currentPayments->contains($existing) || $currentIncomes->contains($existing)) {
                 $existing->setInvestment(null);
                 $entityManager->persist($existing);
             }
         }
 
         // Attach added
-        foreach ($currentPayments as $payment) {
-            $payment->setInvestment($entityInstance);
-            $entityManager->persist($payment);
+        foreach ([...$currentPayments, ...$currentIncomes] as $transaction) {
+            $transaction->setInvestment($entityInstance);
+            $entityManager->persist($transaction);
         }
     }
 }

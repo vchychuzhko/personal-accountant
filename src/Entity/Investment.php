@@ -15,7 +15,7 @@ class Investment
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     private ?string $name = null;
 
     #[ORM\Column]
@@ -31,6 +31,13 @@ class Investment
     #[ORM\OrderBy(['created_at' => 'DESC'])]
     private Collection $payments;
 
+    /**
+     * @var Collection<int, Income>
+     */
+    #[ORM\OneToMany(targetEntity: Income::class, mappedBy: 'investment')]
+    #[ORM\OrderBy(['created_at' => 'DESC'])]
+    private Collection $incomes;
+
     #[ORM\ManyToOne(inversedBy: 'investments')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Currency $currency = null;
@@ -38,6 +45,7 @@ class Investment
     public function __construct()
     {
         $this->payments = new ArrayCollection();
+        $this->incomes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -103,7 +111,7 @@ class Investment
 
     public function getDifference(): ?float
     {
-        return $this->getValue() - $this->getPurchasedValue();
+        return $this->getShare() > 0 ? $this->getValue() - $this->getPurchasedValue() : 0;
     }
 
     public function addPayment(Payment $payment): static
@@ -122,6 +130,36 @@ class Investment
             // set the owning side to null (unless already changed)
             if ($payment->getInvestment() === $this) {
                 $payment->setInvestment(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Income>
+     */
+    public function getIncomes(): Collection
+    {
+        return $this->incomes;
+    }
+
+    public function addIncome(Income $income): static
+    {
+        if (!$this->incomes->contains($income)) {
+            $this->incomes->add($income);
+            $income->setInvestment($this);
+        }
+
+        return $this;
+    }
+
+    public function removeIncome(Income $income): static
+    {
+        if ($this->incomes->removeElement($income)) {
+            // set the owning side to null (unless already changed)
+            if ($income->getInvestment() === $this) {
+                $income->setInvestment(null);
             }
         }
 
