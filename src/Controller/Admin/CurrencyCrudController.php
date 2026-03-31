@@ -14,6 +14,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
@@ -52,20 +53,34 @@ class CurrencyCrudController extends AbstractCrudController
                 ->setHelp('Use "%1" as placeholder for number value, e.g. "$%1"')
                 ->hideOnIndex(),
 
-            FormField::addFieldset()
-                ->onlyOnDetail(),
-            ArrayField::new('balances')
+            FormField::addFieldset('Balances')
+                ->addCssClass('form-fieldset--no-labels')
+                ->hideOnForm(),
+            AssociationField::new('balances')
                 ->setTemplatePath('admin/fields/balances_by_currency.html.twig')
+                ->autocomplete()
+                ->hideOnForm(),
+
+            FormField::addFieldset('Active Deposits')
+                ->addCssClass('form-fieldset--no-labels')
                 ->hideOnForm(),
             ArrayField::new('active_deposits')
                 ->setTemplatePath('admin/fields/deposits_by_currency.html.twig')
                 ->hideOnForm(),
+
+            FormField::addFieldset('Active Investments')
+                ->addCssClass('form-fieldset--no-labels')
+                ->onlyOnDetail(),
             ArrayField::new('active_investments')
                 ->setTemplatePath('admin/fields/investments_by_currency.html.twig')
-                ->hideOnForm(),
-            ArrayField::new('loans')
+                ->onlyOnDetail(),
+
+            FormField::addFieldset('Loans')
+                ->addCssClass('form-fieldset--no-labels')
+                ->onlyOnDetail(),
+            AssociationField::new('loans')
                 ->setTemplatePath('admin/fields/loans_by_currency.html.twig')
-                ->hideOnForm(),
+                ->onlyOnDetail(),
         ];
     }
 

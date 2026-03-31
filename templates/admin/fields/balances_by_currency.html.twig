@@ -14,18 +14,33 @@
         {{ field.value | length }} balance(s)
     </a>
 {% else %}
-    <ul class="ps-3 mb-0">
+    <table class="table datagrid">
+        <thead>
+        <tr>
+            <th data-column="name"><span>Name</span></th>
+            <th data-column="amount"><span>Amount</span></th>
+            <th data-column="amount_in_usd"><span>Amount in USD</span></th>
+            <th><span class="visually-hidden">Actions</span></th>
+        </tr>
+        </thead>
+        <tbody>
         {% for balance in field.value %}
-            <li>
-                <a href="{{ ea_url()
-                    .unsetAll()
-                    .setController('App\\Controller\\Admin\\BalanceCrudController')
-                    .setAction('detail')
-                    .setEntityId(balance.id)
-                }}">
-                    {{ balance }} - {{ balance.amount | price(balance.currency.format) }}
-                </a>
-            </li>
+            <tr>
+                <td data-column="name" data-label="Name">{{ balance.name }}</td>
+                <td data-column="amount" data-label="Amount">{{ balance.amount | price(balance.currency.format) }}</td>
+                <td data-column="amount_in_usd" data-label="Amount in USD">{{ balance.amountInUsd | price }}</td>
+                <td class="actions">
+                    <a href="{{ ea_url()
+                        .unsetAll()
+                        .setController('App\\Controller\\Admin\\BalanceCrudController')
+                        .setAction('detail')
+                        .setEntityId(balance.id)
+                    }}">
+                        Show
+                    </a>
+                </td>
+            </tr>
         {% endfor %}
-    </ul>
+        </tbody>
+    </table>
 {% endif %}

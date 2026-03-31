@@ -4,33 +4,57 @@
 {% if (field.value is empty) %}
     <span>-</span>
 {% elseif (ea().crud.currentAction == 'index') %}
-    {% set balanceIds = [] %}
-    {% for balance in entity.instance.balances %}
-        {% set balanceIds = balanceIds|merge([balance.id]) %}
+    {% set depositIds = [] %}
+    {% for deposit in entity.instance.deposits %}
+        {% set depositIds = depositIds|merge([deposit.id]) %}
     {% endfor %}
     <a href="{{ ea_url()
+        .unsetAll()
         .setController('App\\Controller\\Admin\\DepositCrudController')
         .setAction('index')
-        .set('filters[balance][value]', balanceIds)
-        .set('filters[balance][comparison]', '=')
+        .set('filters[deposit][value]', depositIds)
+        .set('filters[deposit][comparison]', '=')
         .set('filters[status][value]', 0)
         .set('filters[status][comparison]', '=')
     }}">
         {{ field.value | length }} deposit(s)
     </a>
 {% else %}
-    <ul class="ps-3 mb-0">
+    <table class="table datagrid">
+        <thead>
+        <tr>
+            <th data-column="name"><span>Name</span></th>
+            <th data-column="amount"><span>Amount</span></th>
+            <th data-column="amount_in_usd"><span>Amount in USD</span></th>
+            <th data-column="interest"><span>Interest</span></th>
+            <th data-column="period"><span>Period</span></th>
+            <th data-column="end_date"><span>End Date</span></th>
+            <th><span class="visually-hidden">Actions</span></th>
+        </tr>
+        </thead>
+        <tbody>
         {% for deposit in field.value %}
-            <li>
-                <a href="{{ ea_url()
-                    .unsetAll()
-                    .setController('App\\Controller\\Admin\\DepositCrudController')
-                    .setAction('detail')
-                    .setEntityId(deposit.id)
-                }}">
-                    {{ deposit }} - {{ deposit.amount | price(deposit.balance.currency.format) }}
-                </a>
-            </li>
+            <tr>
+                <td data-column="name" data-label="Name">{{ deposit.name }}</td>
+                <td data-column="amount" data-label="Amount">{{ deposit.amount | price(deposit.balance.currency.format) }}</td>
+                <td data-column="amount_in_usd" data-label="Amount in USD">{{ deposit.amountInUsd | price }}</td>
+                <td data-column="interest" data-label="Interest">{{ deposit.interest }}%</td>
+                <td data-column="period" data-label="Period">{{ deposit.period }} {{ deposit.period === 1 ? 'month' : ' months' }}</td>
+                <td data-column="end_date" data-label="End Date">
+                    <time datetime="{{ deposit.endDate|date('c') }}" title="{{ deposit.endDate|date('r') }}">{{ deposit.endDate|date('d.m.Y') }}</time>
+                </td>
+                <td class="actions">
+                    <a href="{{ ea_url()
+                        .unsetAll()
+                        .setController('App\\Controller\\Admin\\DepositCrudController')
+                        .setAction('detail')
+                        .setEntityId(deposit.id)
+                    }}">
+                        Show
+                    </a>
+                </td>
+            </tr>
         {% endfor %}
-    </ul>
+        </tbody>
+    </table>
 {% endif %}
