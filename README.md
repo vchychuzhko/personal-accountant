@@ -95,11 +95,13 @@ Panel is available by default at - https://&lt;your-localhost&gt;/admin
 
 ### Commands
 
-#### Align Payment IDs according to created_at field
+#### Sync Payment IDs according to created_at field
 
 ```bash
-php bin/console app:fix-payment-ids
+php bin/console app:sync-ids
 ```
+
+Use `-i` or `-p` flags to specify income or payment entitiy IDs to be synced.
 
 *Database backup is recommended before running this command*
 
