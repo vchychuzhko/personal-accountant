@@ -105,7 +105,7 @@ class InvestmentCrudController extends AbstractCrudController
                 ->formatValue(function ($value, Investment $entity) {
                     $currency = $entity->getCurrency();
 
-                    return ($value > 0 ? '+' : '') . ($value < 0 ? '-' : '') . PriceUtils::format(abs($value), $currency->getFormat());
+                    return PriceUtils::format(abs($value), $currency->getFormat());
                 })
                 ->hideOnForm(),
 

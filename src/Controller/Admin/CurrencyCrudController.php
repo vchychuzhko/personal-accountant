@@ -15,7 +15,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -45,8 +44,6 @@ class CurrencyCrudController extends AbstractCrudController
         return [
             FormField::addColumn(),
             FormField::addFieldset(),
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('name'),
             TextField::new('code'),
             NumberField::new('rate')
@@ -63,13 +60,20 @@ class CurrencyCrudController extends AbstractCrudController
             ArrayField::new('active_deposits')
                 ->setTemplatePath('admin/fields/deposits_by_currency.html.twig')
                 ->hideOnForm(),
-            ArrayField::new('investments')
+            ArrayField::new('active_investments')
                 ->setTemplatePath('admin/fields/investments_by_currency.html.twig')
                 ->hideOnForm(),
             ArrayField::new('loans')
                 ->setTemplatePath('admin/fields/loans_by_currency.html.twig')
                 ->hideOnForm(),
         ];
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setDefaultSort(['name' => 'ASC'])
+        ;
     }
 
     public function configureActions(Actions $actions): Actions

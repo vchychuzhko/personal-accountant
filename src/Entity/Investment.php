@@ -70,6 +70,11 @@ class Investment
         return $this->share;
     }
 
+    public function isActive(): bool
+    {
+        return $this->getShare() > 0;
+    }
+
     public function setShare(float $share): static
     {
         $this->share = $share;
@@ -84,7 +89,7 @@ class Investment
 
     public function getValue(): ?float
     {
-        return $this->getShare() * $this->getPrice();
+        return $this->isActive() ? $this->getShare() * $this->getPrice() : $this->getSoldValue();
     }
 
     public function setPrice(float $price): static
@@ -111,7 +116,7 @@ class Investment
 
     public function getDifference(): ?float
     {
-        return $this->getShare() > 0 ? $this->getValue() - $this->getPurchasedValue() : 0;
+        return $this->getValue() - $this->getPurchasedValue();
     }
 
     public function addPayment(Payment $payment): static
@@ -142,6 +147,13 @@ class Investment
     public function getIncomes(): Collection
     {
         return $this->incomes;
+    }
+
+    public function getSoldValue(): ?float
+    {
+        $incomes = $this->getIncomes();
+
+        return $incomes->reduce(fn(float $value, Income $income) => $value + $income->getAmount(), 0);
     }
 
     public function addIncome(Income $income): static
