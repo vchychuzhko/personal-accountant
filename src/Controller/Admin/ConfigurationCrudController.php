@@ -3,11 +3,11 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Configuration;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -23,8 +23,6 @@ class ConfigurationCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('label'),
             TextField::new('name')
                 ->setDisabled(),
@@ -46,16 +44,16 @@ class ConfigurationCrudController extends AbstractCrudController
         ;
     }
 
+    #[AdminRoute('/clear-cache')]
     public function clearCache(
         TagAwareCacheInterface $cache,
         AdminUrlGenerator $adminUrlGenerator
     ): RedirectResponse {
         $cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
-        $this->addFlash('success', '"' . DashboardController::DASHBOARD_CACHE_TAG . '" cache is successfully cleared');
+        $this->addFlash('success', 'Cache is successfully cleared');
 
         $targetUrl = $adminUrlGenerator
-            ->setController(self::class)
             ->setAction(Crud::PAGE_INDEX)
             ->generateUrl();
 
