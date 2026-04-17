@@ -15,6 +15,7 @@
             </div>
             <div class="modal-body">
                 <form id="complete-form" action="{{ action.linkUrl }}" method="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ ea().entity.primaryKeyValue) }}">
                     <div class="row">
                         <div class="col-12">
                             <div class="field-number form-group">

@@ -7,7 +7,7 @@ use App\Entity\Income;
 use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
-use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminAction;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -29,14 +29,16 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class DepositCrudController extends AbstractCrudController
 {
     public function __construct(
         private readonly TagAwareCacheInterface $cache,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly AdminUrlGenerator $adminUrlGenerator,
     ) {
     }
 
@@ -169,7 +171,7 @@ class DepositCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $complete = Action::new('complete')
-            ->linkToCrudAction('complete')
+            ->linkToRoute('admin_deposit_complete', fn(Deposit $deposit) => ['entityId' => $deposit->getId()])
             ->setTemplatePath('admin/deposit_complete_action.html.twig')
             ->displayIf(fn(Deposit $deposit) => $deposit->isActive());
 
@@ -177,41 +179,41 @@ class DepositCrudController extends AbstractCrudController
             ->add(Crud::PAGE_DETAIL, $complete);
     }
 
-    #[AdminAction(routePath: '/complete', routeName: 'deposit_complete', methods: ['POST'])]
+    #[AdminRoute('/{entityId}/complete', options: ['methods' => ['POST']])]
     public function complete(
-        AdminContext $adminContext,
-        EntityManagerInterface $entityManager,
-        Request $request,
-        AdminUrlGenerator $adminUrlGenerator,
+        AdminContext $context,
+        #[MapEntity(id: 'entityId')] Deposit $deposit,
     ): RedirectResponse {
-        /** @var Deposit $deposit */
-        $deposit = $adminContext->getEntity()->getInstance();
+        $request = $context->getRequest();
 
-        $profit = (float) $request->get('profit');
+        if (!$this->isCsrfTokenValid('complete' . $deposit->getId(), $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
+
+        $profit = (float) $request->request->get('profit');
 
         $income = new Income();
         $income
             ->setName('Yield from "' . $deposit->getName() . '" (#' . $deposit->getId() . ')')
             ->setBalance($deposit->getBalance())
             ->setAmount($profit);
-        $entityManager->persist($income);
+        $this->entityManager->persist($income);
 
         $balance = $deposit->getBalance();
         $balance->setAmount($balance->getAmount() + $deposit->getAmount() + $profit);
-        $entityManager->persist($balance);
+        $this->entityManager->persist($balance);
 
         $deposit->setStatus(Deposit::STATUS_COMPLETED);
         $deposit->setProfit($profit);
-        $entityManager->persist($deposit);
+        $this->entityManager->persist($deposit);
 
-        $entityManager->flush();
+        $this->entityManager->flush();
 
         $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
         $this->addFlash('success', 'Deposit "' . $deposit->getName() . '" is completed');
 
-        $targetUrl = $adminUrlGenerator
-            ->setController(self::class)
+        $targetUrl = $this->adminUrlGenerator
             ->setAction(Crud::PAGE_DETAIL)
             ->setEntityId($deposit->getId())
             ->generateUrl();
