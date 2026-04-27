@@ -172,11 +172,20 @@ class DepositCrudController extends AbstractCrudController
     {
         $complete = Action::new('complete')
             ->linkToRoute('admin_deposit_complete', fn(Deposit $deposit) => ['entityId' => $deposit->getId()])
-            ->setTemplatePath('admin/deposit_complete_action.html.twig')
+            ->setTemplatePath('admin/actions/deposit_complete.html.twig')
+            ->displayIf(fn(Deposit $deposit) => $deposit->isActive());
+        $cancel = Action::new('cancel')
+            ->linkToRoute('admin_deposit_cancel', fn(Deposit $deposit) => ['entityId' => $deposit->getId()])
+            ->setTemplatePath('admin/actions/deposit_cancel.html.twig')
             ->displayIf(fn(Deposit $deposit) => $deposit->isActive());
 
         return parent::configureActions($actions)
-            ->add(Crud::PAGE_DETAIL, $complete);
+            ->update(Crud::PAGE_DETAIL, Action::DELETE, function (Action $action) {
+                return $action->displayIf(fn(Deposit $entity) => !$entity->isActive());
+            })
+            ->add(Crud::PAGE_DETAIL, $complete)
+            ->add(Crud::PAGE_DETAIL, $cancel)
+        ;
     }
 
     #[AdminRoute('/{entityId}/complete', options: ['methods' => ['POST']])]
@@ -212,6 +221,39 @@ class DepositCrudController extends AbstractCrudController
         $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
         $this->addFlash('success', 'Deposit "' . $deposit->getName() . '" is completed');
+
+        $targetUrl = $this->adminUrlGenerator
+            ->setAction(Crud::PAGE_DETAIL)
+            ->setEntityId($deposit->getId())
+            ->generateUrl();
+
+        return $this->redirect($targetUrl);
+    }
+
+    #[AdminRoute('/{entityId}/cancel', options: ['methods' => ['POST']])]
+    public function cancel(
+        AdminContext $context,
+        #[MapEntity(id: 'entityId')] Deposit $deposit,
+    ): RedirectResponse {
+        $request = $context->getRequest();
+
+        if (!$this->isCsrfTokenValid('cancel' . $deposit->getId(), $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
+
+        $balance = $deposit->getBalance();
+        $balance->setAmount($balance->getAmount() + $deposit->getAmount());
+        $this->entityManager->persist($balance);
+
+        $deposit->setStatus(Deposit::STATUS_CANCELED);
+        $deposit->setProfit(0);
+        $this->entityManager->persist($deposit);
+
+        $this->entityManager->flush();
+
+        $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
+
+        $this->addFlash('success', 'Deposit "' . $deposit->getName() . '" is canceled');
 
         $targetUrl = $this->adminUrlGenerator
             ->setAction(Crud::PAGE_DETAIL)

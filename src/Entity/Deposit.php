@@ -11,10 +11,12 @@ class Deposit
 {
     public const STATUS_ACTIVE = 0;
     public const STATUS_COMPLETED = 1;
+    public const STATUS_CANCELED = 2;
 
     public const STATUS_MAP = [
         self::STATUS_ACTIVE => 'Active',
         self::STATUS_COMPLETED => 'Closed',
+        self::STATUS_CANCELED => 'Canceled',
     ];
 
     #[ORM\Id]
