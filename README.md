@@ -1,15 +1,18 @@
 # Personal Accountant
 
+![version](https://img.shields.io/badge/version-1.0-success)
+[![demo](https://img.shields.io/badge/Demo-live-blue)](https://pa-demo.vchychuzhko.com)
+[![dockerhub](https://img.shields.io/badge/Docker%20Hub-live-blue)](https://hub.docker.com/r/vchychuzhko/personal-accountant)
+
 App to keep all balances and transactions organized.
 
-*Do not trust anyone, host only locally*
-
-Demo - https://pa-demo.vchychuzhko.com
+> Do not trust anyone, selfhost
 
 ## Table of Contents
 
 - [Deploy](#deploy)
   - [Requirements](#requirements)
+  - [Docker](#docker)
   - [Set local variables](#set-local-variables)
   - [Install Packages](#install-packages)
   - [Generate Assets](#generate-assets)
@@ -25,12 +28,16 @@ Demo - https://pa-demo.vchychuzhko.com
 
 - PHP 8.4
 - Composer 2
-- MySQL 8
+- MariaDB 10.11
 - Node 22
+
+### Docker
+
+[Docker documentation](.docker/README.md)
 
 ### Set local variables
 
-Set MySQL credentials in `.env.local` file.
+Set database credentials in `.env.local` file.
 
 ```bash
 cp .env .env.local
@@ -95,13 +102,13 @@ Panel is available by default at - https://&lt;your-localhost&gt;/admin
 
 ### Commands
 
-#### Sync Payment IDs according to created_at field
+#### Sync Payment or Income IDs according to created_at field
 
 ```bash
 php bin/console app:sync-ids
 ```
 
-Use `-i` or `-p` flags to specify income or payment entitiy IDs to be synced.
+Use `-i` or `-p` flags to specify income or payment entity.
 
 *Database backup is recommended before running this command*
 

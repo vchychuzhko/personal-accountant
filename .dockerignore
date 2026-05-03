@@ -1,0 +1,7 @@
+.env
+.git
+.idea
+node_modules
+public/bundles
+var
+vendor
