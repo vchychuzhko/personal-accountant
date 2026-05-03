@@ -26,9 +26,9 @@ WORKDIR /app
 
 COPY --from=builder /app /app
 
-COPY docker/caddy/Caddyfile /etc/caddy/Caddyfile
+COPY .docker/caddy/Caddyfile /etc/caddy/Caddyfile
 EXPOSE 80
 
-COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint
+COPY .docker/php/entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
 ENTRYPOINT ["entrypoint"]

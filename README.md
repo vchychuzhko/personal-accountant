@@ -1,20 +1,22 @@
 # Personal Accountant
 
+![version](https://img.shields.io/badge/version-1.0-success)
+[![demo](https://img.shields.io/badge/Demo-live-blue)](https://pa-demo.vchychuzhko.com)
+[![dockerhub](https://img.shields.io/badge/Docker%20Hub-live-blue)](https://hub.docker.com/r/vchychuzhko/personal-accountant)
+
 App to keep all balances and transactions organized.
 
 > Do not trust anyone, selfhost
-
-Demo - https://pa-demo.vchychuzhko.com
 
 ## Table of Contents
 
 - [Deploy](#deploy)
   - [Requirements](#requirements)
+  - [Docker](#docker)
   - [Set local variables](#set-local-variables)
   - [Install Packages](#install-packages)
   - [Generate Assets](#generate-assets)
   - [Create Admin User](#create-admin-user)
-  - [Docker](#docker)
 - [Usage](#usage)
   - [Web](#web)
   - [Entities](#entities)
@@ -28,6 +30,10 @@ Demo - https://pa-demo.vchychuzhko.com
 - Composer 2
 - MariaDB 10.11
 - Node 22
+
+### Docker
+
+[Docker documentation](.docker/README.md)
 
 ### Set local variables
 
@@ -64,16 +70,6 @@ To create initial admin user, use this command:
 ```bash
 php bin/console app:create-admin
 ```
-
-### Docker
-
-There is an official production-ready image you can use for local deployment - [Docker Hub](https://hub.docker.com/r/vchychuzhko/personal-accountant).
-
-[docker-compose.prod.yml](./docker-compose.prod.yml) contains a ready-to-use configuration, that can be used in, for example, Portainer Stack.
-
-Pay attention to default values:
-- Database credentials: `app:app`
-- Port: `8996`
 
 ## Usage
 
