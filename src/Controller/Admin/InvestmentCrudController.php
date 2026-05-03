@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Configuration;
+use App\Entity\Income;
 use App\Entity\Investment;
 use App\Entity\Payment;
 use App\Repository\ConfigurationRepository;
@@ -11,12 +12,14 @@ use App\Utils\PriceUtils;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
@@ -31,6 +34,13 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class InvestmentCrudController extends AbstractCrudController
 {
     private const STOCKS_API_REALTIME_ENDPOINT = 'https://eodhd.com/api/real-time/';
+
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly HttpClientInterface $client,
+        private readonly AdminUrlGenerator $adminUrlGenerator,
+    ) {
+    }
 
     public static function getEntityFqcn(): string
     {
@@ -95,7 +105,7 @@ class InvestmentCrudController extends AbstractCrudController
                 ->formatValue(function ($value, Investment $entity) {
                     $currency = $entity->getCurrency();
 
-                    return ($value > 0 ? '+' : '-') . PriceUtils::format(abs($value), $currency->getFormat());
+                    return PriceUtils::format(abs($value), $currency->getFormat());
                 })
                 ->hideOnForm(),
 
@@ -105,12 +115,20 @@ class InvestmentCrudController extends AbstractCrudController
                 ->setTemplatePath('admin/fields/payments_by_investment.html.twig')
                 ->autocomplete()
                 ->hideOnIndex(),
+
+            FormField::addFieldset('Incomes')
+                ->addCssClass('form-fieldset--no-labels'),
+            AssociationField::new('incomes')
+                ->setTemplatePath('admin/fields/payments_by_investment.html.twig')
+                ->autocomplete()
+                ->hideOnIndex(),
         ];
     }
 
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
+            ->add('share')
             ->add('currency')
         ;
     }
@@ -129,71 +147,72 @@ class InvestmentCrudController extends AbstractCrudController
             ->createAsGlobalAction();
 
         return parent::configureActions($actions)
-            ->add(Crud::PAGE_INDEX, $updateRates);
+            ->add(Crud::PAGE_INDEX, $updateRates)
+        ;
     }
 
     /**
      * @see https://eodhd.com/financial-apis/live-ohlcv-stocks-api
      */
-    public function updatePrices(
-        EntityManagerInterface $entityManager,
-        HttpClientInterface $client,
-        AdminUrlGenerator $adminUrlGenerator,
-    ): RedirectResponse {
-        /** @var ConfigurationRepository $configRepository */
-        $configRepository = $entityManager->getRepository(Configuration::class);
+    #[AdminRoute('/update-prices')]
+    public function updatePrices(AdminContext $context): RedirectResponse {
+        try {
+            /** @var ConfigurationRepository $configRepository */
+            $configRepository = $this->entityManager->getRepository(Configuration::class);
 
-        $apiKey = $configRepository->getByName('stocks_api/key');
+            $apiKey = $configRepository->getByName('stocks_api/key');
 
-        if (!$apiKey) {
-            throw new \LogicException('Stocks API Key is not set');
+            if (!$apiKey) {
+                throw new \LogicException('Stocks API Key is not set');
+            }
+
+            /** @var InvestmentRepository $investmentRepository */
+            $investmentRepository = $this->entityManager->getRepository(Investment::class);
+
+            $investments = $investmentRepository->findAllActive();
+
+            if (!\count($investments)) {
+                throw new \LogicException('No investments yet');
+            }
+
+            $mainInvestment = $investments[0];
+            $restInvestments = array_slice($investments, 1);
+
+            $url = self::STOCKS_API_REALTIME_ENDPOINT . $mainInvestment->getName()
+                . '?api_token=' . $apiKey
+                . '&fmt=json';
+
+            if (count($restInvestments)) {
+                $url .= '&s=' . join(',', array_map(fn(Investment $investment) => $investment->getName(), $restInvestments));
+            }
+
+            $response = $this->client->request('GET', $url);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new \LogicException('Stocks API request error');
+            }
+
+            $content = $response->toArray();
+
+            if (!array_is_list($content)) {
+                $content = [$content];
+            }
+
+            foreach ($investments as $investment) {
+                $data = array_find($content, fn($item) => $item['code'] === $investment->getName());
+                $investment->setPrice($data['close']);
+
+                $this->entityManager->persist($investment);
+            }
+
+            $this->entityManager->flush();
+
+            $this->addFlash('success', 'Prices are successfully updated');
+        } catch (\LogicException $e) {
+            $this->addFlash('error', $e->getMessage());
         }
 
-        /** @var InvestmentRepository $investmentRepository */
-        $investmentRepository = $entityManager->getRepository(Investment::class);
-
-        $investments = $investmentRepository->findAll();
-
-        if (!\count($investments)) {
-            throw new \LogicException('No investments yet');
-        }
-
-        $mainInvestment = $investments[0];
-        $restInvestments = array_slice($investments, 1);
-
-        $url = self::STOCKS_API_REALTIME_ENDPOINT . $mainInvestment->getName()
-            . '?api_token=' . $apiKey
-            . '&fmt=json';
-
-        if (count($restInvestments)) {
-            $url .= '&s=' . join(',', array_map(fn(Investment $investment) => $investment->getName(), $restInvestments));
-        }
-
-        $response = $client->request('GET', $url);
-
-        if ($response->getStatusCode() !== 200) {
-            throw new \LogicException('Stocks API request error');
-        }
-
-        $content = $response->toArray();
-
-        if (!array_is_list($content)) {
-            $content = [$content];
-        }
-
-        foreach ($investments as $investment) {
-            $data = array_find($content, fn($item) => $item['code'] === $investment->getName());
-            $investment->setPrice($data['close']);
-
-            $entityManager->persist($investment);
-        }
-
-        $entityManager->flush();
-
-        $this->addFlash('success', 'Prices are successfully updated');
-
-        $targetUrl = $adminUrlGenerator
-            ->setController(self::class)
+        $targetUrl = $this->adminUrlGenerator
             ->setAction(Crud::PAGE_INDEX)
             ->generateUrl();
 
@@ -207,7 +226,7 @@ class InvestmentCrudController extends AbstractCrudController
      */
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
-        $this->syncPayments($entityManager, $entityInstance);
+        $this->syncTransactions($entityManager, $entityInstance);
 
         parent::persistEntity($entityManager, $entityInstance);
     }
@@ -219,29 +238,31 @@ class InvestmentCrudController extends AbstractCrudController
      */
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
-        $this->syncPayments($entityManager, $entityInstance);
+        $this->syncTransactions($entityManager, $entityInstance);
 
         parent::updateEntity($entityManager, $entityInstance);
     }
 
-    private function syncPayments(EntityManagerInterface $entityManager, Investment $entityInstance): void
+    private function syncTransactions(EntityManagerInterface $entityManager, Investment $entityInstance): void
     {
         $currentPayments = new ArrayCollection($entityInstance->getPayments()->toArray());
+        $currentIncomes = new ArrayCollection($entityInstance->getIncomes()->toArray());
 
         $existingPayments = $entityManager->getRepository(Payment::class)->findBy(['investment' => $entityInstance]);
+        $existingIncomes = $entityManager->getRepository(Income::class)->findBy(['investment' => $entityInstance]);
 
         // Detach removed
-        foreach ($existingPayments as $existing) {
-            if (!$currentPayments->contains($existing)) {
+        foreach ([...$existingPayments, ...$existingIncomes] as $existing) {
+            if (!$currentPayments->contains($existing) || $currentIncomes->contains($existing)) {
                 $existing->setInvestment(null);
                 $entityManager->persist($existing);
             }
         }
 
         // Attach added
-        foreach ($currentPayments as $payment) {
-            $payment->setInvestment($entityInstance);
-            $entityManager->persist($payment);
+        foreach ([...$currentPayments, ...$currentIncomes] as $transaction) {
+            $transaction->setInvestment($entityInstance);
+            $entityManager->persist($transaction);
         }
     }
 }

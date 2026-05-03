@@ -3,8 +3,9 @@
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
 {% if (field.value is empty) %}
     <span>-</span>
-{% elseif (ea.crud.currentAction == 'index') %}
+{% elseif (ea().crud.currentAction == 'index') %}
     <a href="{{ ea_url()
+        .unsetAll()
         .setController('App\\Controller\\Admin\\InvestmentCrudController')
         .setAction('index')
         .set('filters[currency][value]', entity.primaryKeyValue)
@@ -13,18 +14,35 @@
         {{ field.value | length }} investment(s)
     </a>
 {% else %}
-    <ul class="ps-3 mb-0">
+    <table class="table datagrid">
+        <thead>
+        <tr>
+            <th data-column="name"><span>Name</span></th>
+            <th data-column="share"><span>Share</span></th>
+            <th data-column="price"><span>Price</span></th>
+            <th data-column="value"><span>Value</span></th>
+            <th><span class="visually-hidden">Actions</span></th>
+        </tr>
+        </thead>
+        <tbody>
         {% for investment in field.value %}
-            <li>
-                <a href="{{ ea_url()
-                    .unsetAll()
-                    .setController('App\\Controller\\Admin\\InvestmentCrudController')
-                    .setAction('detail')
-                    .setEntityId(investment.id)
-                }}">
-                    {{ investment }} - {{ investment.value | price(investment.currency.format) }}
-                </a>
-            </li>
+            <tr>
+                <td data-column="name" data-label="Name">{{ investment.name }}</td>
+                <td data-column="share" data-label="Share">{{ investment.share }}</td>
+                <td data-column="price" data-label="Price">{{ investment.price | price(investment.currency.format) }}</td>
+                <td data-column="value" data-label="Value">{{ investment.value | price(investment.currency.format) }}</td>
+                <td class="actions">
+                    <a href="{{ ea_url()
+                        .unsetAll()
+                        .setController('App\\Controller\\Admin\\InvestmentCrudController')
+                        .setAction('detail')
+                        .setEntityId(investment.id)
+                    }}">
+                        Show
+                    </a>
+                </td>
+            </tr>
         {% endfor %}
-    </ul>
+        </tbody>
+    </table>
 {% endif %}

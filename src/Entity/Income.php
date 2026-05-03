@@ -26,6 +26,9 @@ class Income
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
 
+    #[ORM\ManyToOne(inversedBy: 'incomes')]
+    private ?Investment $investment = null;
+
     public function __construct()
     {
         $this->created_at = new \DateTimeImmutable();
@@ -88,6 +91,38 @@ class Income
     public function setCreatedAt(\DateTimeImmutable $created_at): static
     {
         $this->created_at = $created_at;
+
+        return $this;
+    }
+
+    public function getInvestment(): ?Investment
+    {
+        return $this->investment;
+    }
+
+    public function getShare(): ?float
+    {
+        if (preg_match('/([\d.]+)$/', $this->getName(), $matches)) {
+            return (float) $matches[1];
+        }
+
+        return null;
+    }
+
+    public function getPricePerShare(): ?float
+    {
+        $share = $this->getShare();
+
+        if ($share === null) {
+            return null;
+        }
+
+        return $this->amount / $share;
+    }
+
+    public function setInvestment(?Investment $investment): static
+    {
+        $this->investment = $investment;
 
         return $this;
     }

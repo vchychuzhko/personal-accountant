@@ -15,7 +15,7 @@ class Investment
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     private ?string $name = null;
 
     #[ORM\Column]
@@ -31,6 +31,13 @@ class Investment
     #[ORM\OrderBy(['created_at' => 'DESC'])]
     private Collection $payments;
 
+    /**
+     * @var Collection<int, Income>
+     */
+    #[ORM\OneToMany(targetEntity: Income::class, mappedBy: 'investment')]
+    #[ORM\OrderBy(['created_at' => 'DESC'])]
+    private Collection $incomes;
+
     #[ORM\ManyToOne(inversedBy: 'investments')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Currency $currency = null;
@@ -38,6 +45,7 @@ class Investment
     public function __construct()
     {
         $this->payments = new ArrayCollection();
+        $this->incomes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -62,6 +70,11 @@ class Investment
         return $this->share;
     }
 
+    public function isActive(): bool
+    {
+        return $this->getShare() > 0;
+    }
+
     public function setShare(float $share): static
     {
         $this->share = $share;
@@ -76,7 +89,7 @@ class Investment
 
     public function getValue(): ?float
     {
-        return $this->getShare() * $this->getPrice();
+        return $this->isActive() ? $this->getShare() * $this->getPrice() : $this->getSoldValue();
     }
 
     public function setPrice(float $price): static
@@ -122,6 +135,43 @@ class Investment
             // set the owning side to null (unless already changed)
             if ($payment->getInvestment() === $this) {
                 $payment->setInvestment(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Income>
+     */
+    public function getIncomes(): Collection
+    {
+        return $this->incomes;
+    }
+
+    public function getSoldValue(): ?float
+    {
+        $incomes = $this->getIncomes();
+
+        return $incomes->reduce(fn(float $value, Income $income) => $value + $income->getAmount(), 0);
+    }
+
+    public function addIncome(Income $income): static
+    {
+        if (!$this->incomes->contains($income)) {
+            $this->incomes->add($income);
+            $income->setInvestment($this);
+        }
+
+        return $this;
+    }
+
+    public function removeIncome(Income $income): static
+    {
+        if ($this->incomes->removeElement($income)) {
+            // set the owning side to null (unless already changed)
+            if ($income->getInvestment() === $this) {
+                $income->setInvestment(null);
             }
         }
 

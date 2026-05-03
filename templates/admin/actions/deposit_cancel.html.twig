@@ -1,0 +1,36 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var action \EasyCorp\Bundle\EasyAdminBundle\Dto\ActionDto #}
+<button class="btn btn-danger" data-action-name="cancel" data-bs-toggle="modal" data-bs-target="#modal-cancel">
+    <twig:ea:Icon name="internal:xmark" class="btn-icon" />
+    <span class="btn-label">
+        <span class="action-label">Cancel</span>
+    </span>
+</button>
+
+<div id="modal-cancel" class="modal fade" tabindex="-1" aria-modal="true" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="mb-0">Cancel your deposit</h4>
+            </div>
+            <div class="modal-body">
+                <form id="cancel-form" action="{{ action.linkUrl }}" method="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ ea().entity.primaryKeyValue) }}">
+                    <div class="row">
+                        <div class="col-12">
+                            <p>Are you sure you want to Cancel?</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-bs-dismiss="modal" class="btn btn-secondary">
+                    <span class="btn-label">Cancel</span>
+                </button>
+                <button type="submit" data-bs-dismiss="modal" class="btn btn-danger" id="modal-cancel-button" form="cancel-form">
+                    <span class="btn-label">Confirm</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

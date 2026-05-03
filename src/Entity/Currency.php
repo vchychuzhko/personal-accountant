@@ -200,6 +200,17 @@ class Currency
         return $this->investments;
     }
 
+    /**
+     * @return Investment[]
+     */
+    public function getActiveInvestments(): array
+    {
+        return $this->getInvestments()
+            ->filter(fn(Investment $investment) => $investment->isActive())
+            ->toArray()
+        ;
+    }
+
     public function addInvestment(Investment $investment): static
     {
         if (!$this->investments->contains($investment)) {

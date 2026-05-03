@@ -16,21 +16,21 @@
         </tr>
         </thead>
         <tbody>
-        {% for payment in field.value %}
+        {% for income in field.value %}
             <tr>
-                <td data-column="name" data-label="Name">{{ payment.name }}</td>
-                <td data-column="share" data-label="Share">{{ payment.share | number_format(4) }}</td>
-                <td data-column="amount" data-label="Amount">{{ payment.amount | price(payment.balance.currency.format) }}</td>
-                <td data-column="price" data-label="Price">{{ payment.pricePerShare | price(payment.balance.currency.format) }}</td>
+                <td data-column="name" data-label="Name">{{ income.name }}</td>
+                <td data-column="share" data-label="Share">{{ income.share | number_format(4) }}</td>
+                <td data-column="amount" data-label="Amount">{{ income.amount | price(income.balance.currency.format) }}</td>
+                <td data-column="price" data-label="Price">{{ income.pricePerShare | price(income.balance.currency.format) }}</td>
                 <td data-column="created_at" data-label="Created At">
-                    <time datetime="{{ payment.createdAt | date('c') }}" title="{{ payment.createdAt | date('r') }}">{{ payment.createdAt | date('d.m.Y H:i') }}</time>
+                    <time datetime="{{ income.createdAt | date('c') }}" title="{{ income.createdAt | date('r') }}">{{ income.createdAt | date('d.m.Y H:i') }}</time>
                 </td>
                 <td class="actions">
                     <a href="{{ ea_url()
                         .unsetAll()
-                        .setController('App\\Controller\\Admin\\PaymentCrudController')
+                        .setController('App\\Controller\\Admin\\IncomeCrudController')
                         .setAction('detail')
-                        .setEntityId(payment.id)
+                        .setEntityId(income.id)
                     }}">
                         Show
                     </a>

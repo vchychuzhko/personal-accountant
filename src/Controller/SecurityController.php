@@ -38,7 +38,6 @@ class SecurityController extends AbstractController
     #[Route(path: '/register', name: 'app_register', methods: ['POST'])]
     public function register(
         Request $request,
-        AdminRepository $adminRepository,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher
     ): Response {

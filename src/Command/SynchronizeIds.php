@@ -5,8 +5,8 @@ namespace App\Command;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -17,8 +17,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class SynchronizeIds extends Command
 {
-    const ALLOWED_ENTITIES = ['income', 'payment'];
-
     public function __construct(
         private readonly Connection $connection,
         ?string $name = null,
@@ -29,23 +27,40 @@ class SynchronizeIds extends Command
     protected function configure(): void
     {
         $this
-            ->setDefinition([
-                new InputArgument('entity', InputArgument::REQUIRED, 'Entity to sync IDs for', null, self::ALLOWED_ENTITIES),
-            ])
+            ->addOption('income', 'i', InputOption::VALUE_NONE, 'Sync IDs for income entity')
+            ->addOption('payment', 'p', InputOption::VALUE_NONE, 'Sync IDs for payment entity')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $entityName = $input->getArgument('entity');
+        $entitiesToSync = [];
 
-        if (!in_array($entityName, self::ALLOWED_ENTITIES)) {
-            $io->error('Entity should be one of ' . implode(', ', self::ALLOWED_ENTITIES));
+        if ($input->getOption('income')) {
+            $entitiesToSync[] = 'income';
+        }
+
+        if ($input->getOption('payment')) {
+            $entitiesToSync[] = 'payment';
+        }
+
+        if (empty($entitiesToSync)) {
+            $io->error('At least one entity should be selected (-i for income, -p for payment)');
 
             return Command::FAILURE;
         }
 
+        foreach ($entitiesToSync as $entityName) {
+            $io->section(sprintf('Syncing IDs for "%s"', $entityName));
+            $this->syncEntity($entityName, $input, $output, $io);
+        }
+
+        return Command::SUCCESS;
+    }
+
+    private function syncEntity(string $entityName, InputInterface $input, OutputInterface $output, SymfonyStyle $io): void
+    {
         $entities = $this->connection->fetchAllAssociative(sprintf('SELECT * FROM `%s` ORDER BY created_at ASC', $entityName));
 
         $modifiedCount = 0;
@@ -61,14 +76,14 @@ class SynchronizeIds extends Command
         if ($modifiedCount === 0) {
             $output->writeln('No rows require update.');
 
-            return Command::SUCCESS;
+            return;
         }
 
         $helper = $this->getHelper('question');
-        $question = new ConfirmationQuestion($modifiedCount . ' row(s) are going to be updated, proceed? [y/N] ', false);
+        $question = new ConfirmationQuestion($modifiedCount . ' ' . $entityName . ' row(s) are going to be updated, proceed? [y/N] ', false);
 
         if (!$helper->ask($input, $output, $question)) {
-            return Command::SUCCESS;
+            return;
         }
 
         $this->connection->executeStatement(sprintf('TRUNCATE TABLE `%s`', $entityName));
@@ -78,8 +93,6 @@ class SynchronizeIds extends Command
             $this->connection->insert($entityName, $entity);
         }
 
-        $io->success('IDs are synced!');
-
-        return Command::SUCCESS;
+        $io->success(sprintf('IDs for "%s" are synced!', $entityName));
     }
 }

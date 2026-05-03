@@ -3,15 +3,8 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Balance;
-use App\Entity\Configuration;
 use App\Entity\Currency;
 use App\Entity\Deposit;
-use App\Entity\Exchange;
-use App\Entity\Income;
-use App\Entity\Investment;
-use App\Entity\Loan;
-use App\Entity\Tag;
-use App\Entity\Payment;
 use App\Repository\BalanceRepository;
 use App\Repository\CurrencyRepository;
 use App\Repository\DepositRepository;
@@ -103,24 +96,26 @@ class DashboardController extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
-        yield MenuItem::linkToCrud('Balance', 'fas fa-coins', Balance::class);
+        yield MenuItem::linkTo(BalanceCrudController::class, 'Balance', 'fas fa-coins');
         yield MenuItem::linkToRoute('Analyze', 'fas fa-chart-simple', 'admin_analyze');
         yield MenuItem::section('Transactions');
-        yield MenuItem::linkToCrud('Income', 'fas fa-money-bill-trend-up', Income::class);
-        yield MenuItem::linkToCrud('Payment', 'fas fa-money-bill', Payment::class);
-        yield MenuItem::linkToCrud('Exchange', 'fas fa-money-bill-transfer', Exchange::class);
+        yield MenuItem::linkTo(IncomeCrudController::class, 'Income', 'fas fa-money-bill-trend-up');
+        yield MenuItem::linkTo(PaymentCrudController::class, 'Payment', 'fas fa-money-bill');
+        yield MenuItem::linkTo(ExchangeCrudController::class, 'Exchange', 'fas fa-money-bill-transfer');
         yield MenuItem::section('Savings');
-        yield MenuItem::linkToCrud('Deposit', 'fas fa-percent', Deposit::class)
+        yield MenuItem::linkTo(DepositCrudController::class, 'Deposit', 'fas fa-percent')
             ->setQueryParameter('filters[status][comparison]', '=')
             ->setQueryParameter('filters[status][value]', Deposit::STATUS_ACTIVE);
-        yield MenuItem::linkToCrud('Investment', 'fas fa-arrow-trend-up', Investment::class);
-        yield MenuItem::linkToCrud('Loan', 'fas fa-sack-dollar', Loan::class);
+        yield MenuItem::linkTo(InvestmentCrudController::class, 'Investment', 'fas fa-arrow-trend-up')
+            ->setQueryParameter('filters[share][comparison]', '>')
+            ->setQueryParameter('filters[share][value]', 0);
+        yield MenuItem::linkTo(LoanCrudController::class, 'Loan', 'fas fa-sack-dollar');
         yield MenuItem::section();
-        yield MenuItem::linkToCrud('Currency', 'fas fa-dollar', Currency::class);
-        yield MenuItem::linkToCrud('Tag', 'fas fa-tag', Tag::class);
-        yield MenuItem::section();
-        yield MenuItem::linkToCrud('Configuration', 'fas fa-gear', Configuration::class);
+        yield MenuItem::linkTo(CurrencyCrudController::class, 'Currency', 'fas fa-dollar');
+        yield MenuItem::linkTo(TagCrudController::class, 'Tag', 'fas fa-tag');
         yield MenuItem::linkToRoute('Applications', 'fas fa-calculator', 'admin_apps');
+        yield MenuItem::section();
+        yield MenuItem::linkTo(ConfigurationCrudController::class, 'Configuration', 'fas fa-gear');
     }
 
     public function configureActions(): Actions

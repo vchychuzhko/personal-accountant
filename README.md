@@ -81,9 +81,9 @@ Pay attention to default values:
 
 Panel is available by default at - https://&lt;your-localhost&gt;/admin
 
-* On Configuration page you can set API key for [Currency API](https://currencyapi.com/) service.
+* On Configuration page you can set API key for [Currency API](https://currencyapi.com/) and [EODHD API](https://eodhd.com/) services.
 * Dashboard charts are cacheable and can be refreshed manually on Configuration page.
-* Apps page has deposit calculator and currency converter apps.
+* Apps page has deposit calculator and currency converter.
 * All dates are stored in UTC. You can set your timezone for frontend representation and form inputs in Configuration.
 
 ### Entities
@@ -102,20 +102,17 @@ Panel is available by default at - https://&lt;your-localhost&gt;/admin
 
 * Creating Income, Payment, Exchange or Deposit will update related Balance amount.
 * On Deposit completion, initial amount is returned to the Balance and Income with interest is created.
+* Payment and Income can be linked to Investment, in that case share will be extracted from transaction name (e.g. `XTB GOOG 2.5` -> 2.5 shares of Google on XTB platform) 
 
 ### Commands
 
-#### Create admin user
+#### Sync Payment or Income IDs according to created_at field
 
 ```bash
-php bin/console app:create-admin
+php bin/console app:sync-ids
 ```
 
-#### Align Payment or Income IDs according to created_at field
-
-```bash
-php bin/console app:sync-ids <payment|income>
-```
+Use `-i` or `-p` flags to specify income or payment entity.
 
 *Database backup is recommended before running this command*
 

@@ -15,12 +15,13 @@
             </div>
             <div class="modal-body">
                 <form id="complete-form" action="{{ action.linkUrl }}" method="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ ea().entity.primaryKeyValue) }}">
                     <div class="row">
                         <div class="col-12">
                             <div class="field-number form-group">
                                 <label for="profit" class="form-control-label">Actual Profit</label>
                                 <div class="form-widget">
-                                    <input type="number" id="profit" name="profit" value="{{ ea.entity.instance.getExpectedProfit }}"
+                                    <input type="number" id="profit" name="profit" value="{{ ea().entity.instance.getExpectedProfit }}"
                                            inputmode="decimal" class="form-control" step="any"
                                     >
                                 </div>
