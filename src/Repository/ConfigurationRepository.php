@@ -19,8 +19,8 @@ class ConfigurationRepository extends ServiceEntityRepository
     public function getByName($value): mixed
     {
         $setting = $this->createQueryBuilder('c')
-            ->andWhere('c.name = :val')
-            ->setParameter('val', $value)
+            ->andWhere('c.name = :name')
+            ->setParameter('name', $value)
             ->getQuery()
             ->getOneOrNullResult()
         ;

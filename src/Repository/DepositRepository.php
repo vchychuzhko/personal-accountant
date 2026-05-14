@@ -22,8 +22,8 @@ class DepositRepository extends ServiceEntityRepository
     public function findAllActive(): array
     {
         return $this->createQueryBuilder('d')
-            ->andWhere('d.status = :val')
-            ->setParameter('val', Deposit::STATUS_ACTIVE)
+            ->where('d.status = :status')
+            ->setParameter('status', Deposit::STATUS_ACTIVE)
             ->getQuery()
             ->getResult()
         ;

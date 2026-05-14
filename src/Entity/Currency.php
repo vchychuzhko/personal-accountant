@@ -113,6 +113,17 @@ class Currency
         return $this->balances;
     }
 
+    /**
+     * @return Balance[]
+     */
+    public function getActiveBalances(): array
+    {
+        return $this->getBalances()
+            ->filter(fn(Balance $balance) => $balance->isActive())
+            ->toArray()
+        ;
+    }
+
     public function addBalance(Balance $balance): static
     {
         if (!$this->balances->contains($balance)) {

@@ -119,7 +119,7 @@ class InvestmentCrudController extends AbstractCrudController
             FormField::addFieldset('Incomes')
                 ->addCssClass('form-fieldset--no-labels'),
             AssociationField::new('incomes')
-                ->setTemplatePath('admin/fields/payments_by_investment.html.twig')
+                ->setTemplatePath('admin/fields/incomes_by_investment.html.twig')
                 ->autocomplete()
                 ->hideOnIndex(),
         ];

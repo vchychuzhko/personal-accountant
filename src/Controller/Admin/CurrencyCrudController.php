@@ -53,20 +53,19 @@ class CurrencyCrudController extends AbstractCrudController
                 ->setHelp('Use "%1" as placeholder for number value, e.g. "$%1"')
                 ->hideOnIndex(),
 
-            FormField::addFieldset('Balances')
+            FormField::addFieldset('Active Balances')
                 ->addCssClass('form-fieldset--no-labels')
-                ->hideOnForm(),
-            AssociationField::new('balances')
+                ->onlyOnDetail(),
+            ArrayField::new('active_balances')
                 ->setTemplatePath('admin/fields/balances_by_currency.html.twig')
-                ->autocomplete()
-                ->hideOnForm(),
+                ->onlyOnDetail(),
 
             FormField::addFieldset('Active Deposits')
                 ->addCssClass('form-fieldset--no-labels')
-                ->hideOnForm(),
+                ->onlyOnDetail(),
             ArrayField::new('active_deposits')
                 ->setTemplatePath('admin/fields/deposits_by_currency.html.twig')
-                ->hideOnForm(),
+                ->onlyOnDetail(),
 
             FormField::addFieldset('Active Investments')
                 ->addCssClass('form-fieldset--no-labels')
@@ -99,6 +98,7 @@ class CurrencyCrudController extends AbstractCrudController
 
         return parent::configureActions($actions)
             ->add(Crud::PAGE_INDEX, $updateRates)
+            ->setPermission(Action::DELETE, 'ROLE_BLOCKED')
         ;
     }
 

@@ -10,6 +10,14 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: BalanceRepository::class)]
 class Balance
 {
+    public const STATUS_ACTIVE = 0;
+    public const STATUS_ARCHIVED = 1;
+
+    public const STATUS_MAP = [
+        self::STATUS_ACTIVE => 'Active',
+        self::STATUS_ARCHIVED => 'Archived',
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -55,6 +63,9 @@ class Balance
     #[ORM\OneToMany(targetEntity: Exchange::class, mappedBy: 'balance_to')]
     private Collection $exchanges_to;
 
+    #[ORM\Column]
+    private ?int $status = null;
+
     public function __construct()
     {
         $this->incomes = new ArrayCollection();
@@ -62,6 +73,7 @@ class Balance
         $this->deposits = new ArrayCollection();
         $this->exchanges_from = new ArrayCollection();
         $this->exchanges_to = new ArrayCollection();
+        $this->status = self::STATUS_ACTIVE;
     }
 
     public function getId(): ?int
@@ -303,6 +315,28 @@ class Balance
                 $exchange->setBalanceTo(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStatus(): ?int
+    {
+        return $this->status;
+    }
+
+    public function getStatusLabel(): ?string
+    {
+        return self::STATUS_MAP[$this->getStatus()] ?? null;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->getStatus() === self::STATUS_ACTIVE;
+    }
+
+    public function setStatus(int $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }

@@ -3,6 +3,7 @@
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
 {% set badgeClassMap = {
     0: 'badge-success',
-    1: 'badge-primary',
+    1: 'badge-secondary',
+    2: 'badge-danger',
 } %}
 <span class="badge {{ badgeClassMap[field.value] }}">{{ field.formattedValue|trans|raw }}</span>

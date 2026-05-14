@@ -2,10 +2,12 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Balance;
 use App\Entity\Income;
 use App\Repository\ConfigurationRepository;
 use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
@@ -16,7 +18,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -60,11 +61,29 @@ class IncomeCrudController extends AbstractCrudController
     {
         $timezone = $this->configurationRepository->getByName('timezone');
 
+        /** @var Income|null $income */
+        $income = $this->getContext()?->getEntity()?->getInstance();
+        $balance = $income?->getBalance();
+
         return [
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('name'),
-            AssociationField::new('balance'),
+            AssociationField::new('balance')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) use ($balance) {
+                        $qb = $repository->createQueryBuilder('b')
+                            ->where('b.status = :balance_status')
+                            ->setParameter('balance_status', Balance::STATUS_ACTIVE)
+                        ;
+
+                        if ($balance) {
+                            $qb->orWhere('b.id = :balance_id')
+                                ->setParameter('balance_id', $balance->getId())
+                            ;
+                        }
+
+                        return $qb;
+                    },
+                ]),
             NumberField::new('amount')
                 ->formatValue(function ($value, Income $entity) {
                     $currency = $entity->getBalance()->getCurrency();

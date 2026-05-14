@@ -2,10 +2,12 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Balance;
 use App\Entity\Exchange;
 use App\Repository\ConfigurationRepository;
 use App\Utils\PriceUtils;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -31,9 +33,46 @@ class ExchangeCrudController extends AbstractCrudController
     {
         $timezone = $this->configurationRepository->getByName('timezone');
 
+        /** @var Exchange|null $income */
+        $income = $this->getContext()?->getEntity()?->getInstance();
+        $balanceFrom = $income?->getBalanceFrom();
+        $balanceTo = $income?->getBalanceTo();
+
         return [
-            AssociationField::new('balance_from'),
-            AssociationField::new('balance_to'),
+            AssociationField::new('balance_from')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) use ($balanceFrom) {
+                        $qb = $repository->createQueryBuilder('b')
+                            ->where('b.status = :balance_status')
+                            ->setParameter('balance_status', Balance::STATUS_ACTIVE)
+                        ;
+
+                        if ($balanceFrom) {
+                            $qb->orWhere('b.id = :balance_id')
+                                ->setParameter('balance_id', $balanceFrom->getId())
+                            ;
+                        }
+
+                        return $qb;
+                    },
+                ]),
+            AssociationField::new('balance_to')
+                ->setFormTypeOptions([
+                    'query_builder' => function (EntityRepository $repository) use ($balanceTo) {
+                        $qb = $repository->createQueryBuilder('b')
+                            ->where('b.status = :balance_status')
+                            ->setParameter('balance_status', Balance::STATUS_ACTIVE)
+                        ;
+
+                        if ($balanceTo) {
+                            $qb->orWhere('b.id = :balance_id')
+                                ->setParameter('balance_id', $balanceTo->getId())
+                            ;
+                        }
+
+                        return $qb;
+                    },
+                ]),
             NumberField::new('amount')
                 ->formatValue(function ($value, Exchange $entity) {
                     $currency = $entity->getBalanceFrom()->getCurrency();

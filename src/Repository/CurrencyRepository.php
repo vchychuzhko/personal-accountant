@@ -22,8 +22,8 @@ class CurrencyRepository extends ServiceEntityRepository
     public function findNonUsd(): array
     {
         return $this->createQueryBuilder('c')
-            ->andWhere('c.code != :val')
-            ->setParameter('val', 'USD')
+            ->andWhere('c.code != :code')
+            ->setParameter('code', 'USD')
             ->getQuery()
             ->getResult()
         ;

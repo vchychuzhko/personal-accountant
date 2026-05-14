@@ -96,7 +96,9 @@ class DashboardController extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
-        yield MenuItem::linkTo(BalanceCrudController::class, 'Balance', 'fas fa-coins');
+        yield MenuItem::linkTo(BalanceCrudController::class, 'Balance', 'fas fa-coins')
+            ->setQueryParameter('filters[status][comparison]', '=')
+            ->setQueryParameter('filters[status][value]', Balance::STATUS_ACTIVE);
         yield MenuItem::linkToRoute('Analyze', 'fas fa-chart-simple', 'admin_analyze');
         yield MenuItem::section('Transactions');
         yield MenuItem::linkTo(IncomeCrudController::class, 'Income', 'fas fa-money-bill-trend-up');

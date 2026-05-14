@@ -7,16 +7,20 @@ use App\Utils\PriceUtils;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 
 class BalanceCrudController extends AbstractCrudController
 {
@@ -51,8 +55,6 @@ class BalanceCrudController extends AbstractCrudController
         return [
             FormField::addColumn(),
             FormField::addFieldset(),
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('name'),
             AssociationField::new('currency'),
             NumberField::new('amount')
@@ -67,6 +69,9 @@ class BalanceCrudController extends AbstractCrudController
                 })
                 ->setSortable(true)
                 ->hideOnForm(),
+            ChoiceField::new('status')
+                ->setChoices(array_flip(Balance::STATUS_MAP))
+                ->setTemplatePath('admin/fields/status.html.twig'),
 
             FormField::addFieldset()
                 ->onlyOnDetail(),
@@ -91,6 +96,25 @@ class BalanceCrudController extends AbstractCrudController
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
-            ->add('currency');
+            ->add('currency')
+            ->add(
+                ChoiceFilter::new('status')
+                    ->setChoices(array_flip(Balance::STATUS_MAP))
+            )
+        ;
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setDefaultSort(['name' => 'ASC'])
+        ;
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        return parent::configureActions($actions)
+            ->setPermission(Action::DELETE, 'ROLE_BLOCKED')
+        ;
     }
 }

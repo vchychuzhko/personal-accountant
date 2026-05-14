@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Balance;
 use App\Entity\Payment;
 use App\Repository\ConfigurationRepository;
 use App\Utils\PriceUtils;
@@ -21,7 +22,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -68,24 +68,36 @@ class PaymentCrudController extends AbstractCrudController
     {
         $timezone = $this->configurationRepository->getByName('timezone');
 
+        /** @var Payment|null $income */
+        $income = $this->getContext()?->getEntity()?->getInstance();
+        $balance = $income?->getBalance();
+
         return [
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('name'),
             AssociationField::new('tag'),
             AssociationField::new('balance')
                 ->setFormTypeOptions([
-                    'query_builder' => function (EntityRepository $repository) {
+                    'query_builder' => function (EntityRepository $repository) use ($balance) {
                         $dateFrom = new \DateTime('first day of this month 00:00:00');
                         $dateTo = new \DateTime('first day of next month 00:00:00');
 
-                        return $repository->createQueryBuilder('b')
+                        $qb = $repository->createQueryBuilder('b')
                             ->leftJoin('b.payments', 'p', 'WITH', 'p.created_at BETWEEN :from AND :to')
                             ->setParameter('from', $dateFrom)
                             ->setParameter('to', $dateTo)
+                            ->where('b.status = :balance_status')
+                            ->setParameter('balance_status', Balance::STATUS_ACTIVE)
                             ->groupBy('b.id')
                             ->orderBy('COUNT(p.id)', 'DESC')
                         ;
+
+                        if ($balance) {
+                            $qb->orWhere('b.id = :balance_id')
+                                ->setParameter('balance_id', $balance->getId())
+                            ;
+                        }
+
+                        return $qb;
                     },
                 ]),
             NumberField::new('amount')
