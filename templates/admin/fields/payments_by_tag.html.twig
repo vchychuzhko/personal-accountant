@@ -1,7 +1,7 @@
 {# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
 {# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
-{% if (field.value == 0) %}
+{% if (field.formattedValue == 0) %}
     <span>-</span>
 {% else %}
     <a href="{{ ea_url()
@@ -11,6 +11,6 @@
         .set('filters[tag][value]', entity.primaryKeyValue)
         .set('filters[tag][comparison]', '=')
     }}">
-        {{ field.value }} payment(s)
+        {{ field.formattedValue }} payment(s)
     </a>
 {% endif %}
