@@ -110,33 +110,22 @@ class Deposit
         return $this;
     }
 
-    public function getExpectedProfit(): ?float
-    {
-        $interest = $this->getInterest();
-        $tax = $this->getTax();
-        $period = $this->getPeriod();
-
-        return $this->getAmount() * ($interest / 100 * ($period / 12)) * (1 - $tax / 100);
-    }
-
-    public function getExpectedProfitInUsd(): ?float
-    {
-        $balance = $this->getBalance();
-        $currency = $balance->getCurrency();
-
-        return $this->getExpectedProfit() / $currency->getRate();
-    }
-
+    /**
+     * Return expected profit in case Deposit is not closed yet.
+     *
+     * @return float|null
+     */
     public function getProfit(): ?float
     {
+        if (!$this->profit) {
+            $interest = $this->getInterest();
+            $tax = $this->getTax();
+            $period = $this->getPeriod();
+
+            return $this->getAmount() * ($interest / 100 * ($period / 12)) * (1 - $tax / 100);
+        }
+
         return $this->profit;
-    }
-
-    public function setProfit(float $profit): static
-    {
-        $this->profit = $profit;
-
-        return $this;
     }
 
     public function getProfitInUsd(): ?float
@@ -145,6 +134,13 @@ class Deposit
         $currency = $balance->getCurrency();
 
         return $this->getProfit() ? $this->getProfit() / $currency->getRate() : null;
+    }
+
+    public function setProfit(float $profit): static
+    {
+        $this->profit = $profit;
+
+        return $this;
     }
 
     public function getStatus(): ?int

@@ -72,8 +72,7 @@ class DepositCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            FormField::addColumn(8)
-                ->addCssClass('form-column--wide'),
+            FormField::addColumn(8),
             FormField::addFieldset(),
             IdField::new('id')
                 ->onlyOnIndex(),
@@ -86,13 +85,6 @@ class DepositCrudController extends AbstractCrudController
 
                     return PriceUtils::format($value, $currency->getFormat());
                 }),
-            NumberField::new('expected_profit')
-                ->formatValue(function ($value, Deposit $entity) {
-                    $currency = $entity->getBalance()->getCurrency();
-
-                    return PriceUtils::format($value, $currency->getFormat());
-                })
-                ->onlyOnDetail(),
             NumberField::new('profit')
                 ->formatValue(function ($value, Deposit $entity) {
                     $currency = $entity->getBalance()->getCurrency();
@@ -109,16 +101,11 @@ class DepositCrudController extends AbstractCrudController
                 })
                 ->setSortable(true)
                 ->hideOnForm(),
-            NumberField::new('expected_profit_in_usd', 'Expected Profit in USD')
-                ->formatValue(function ($value) {
-                    return PriceUtils::format($value);
-                })
-                ->hideOnForm(),
             NumberField::new('profit_in_usd', 'Profit in USD')
                 ->formatValue(function ($value) {
                     return $value ? PriceUtils::format($value): $value;
                 })
-                ->onlyOnDetail(),
+                ->hideOnForm(),
 
             FormField::addColumn(4),
             FormField::addFieldset(),

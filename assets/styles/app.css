@@ -1,7 +1,3 @@
-.form-column--wide .field-group .field-label {
-    inline-size: 160px;
-}
-
 .form-fieldset--no-labels .field-label {
     display: none;
 }
