@@ -66,9 +66,10 @@
                         <label for="result" class="form-control-label">Result</label>
                         <div class="form-widget">
                             <input type="number" id="result" name="result" value="0.00"
-                                   inputmode="decimal" class="form-control" disabled
+                                   inputmode="decimal" class="form-control" readonly
                                    {{ stimulus_target('calculator', 'result') }}
                             >
+                            <small class="form-text form-help"{{ stimulus_target('calculator', 'difference') }}>+ 0.00</small>
                         </div>
                     </div>
                 </div>
