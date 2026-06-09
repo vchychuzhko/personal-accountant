@@ -22,6 +22,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -73,6 +74,8 @@ class PaymentCrudController extends AbstractCrudController
         $balance = $income?->getBalance();
 
         return [
+            FormField::addColumn(8),
+            FormField::addFieldset(),
             TextField::new('name'),
             AssociationField::new('tag'),
             AssociationField::new('balance')
@@ -112,6 +115,9 @@ class PaymentCrudController extends AbstractCrudController
                 })
                 ->setSortable(true)
                 ->hideOnForm(),
+
+            FormField::addColumn(4),
+            FormField::addFieldset(),
             DateTimeField::new('created_at')
                 ->setFormTypeOption('model_timezone', 'UTC')
                 ->setFormTypeOption('view_timezone', $timezone)

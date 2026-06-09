@@ -11,15 +11,22 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
+use EasyCorp\Bundle\EasyAdminBundle\Config\KeyValueStore;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class IncomeCrudController extends AbstractCrudController
@@ -27,6 +34,7 @@ class IncomeCrudController extends AbstractCrudController
     public function __construct(
         private readonly ConfigurationRepository $configurationRepository,
         private readonly TagAwareCacheInterface $cache,
+        private readonly AdminUrlGenerator $adminUrlGenerator
     ) {
     }
 
@@ -66,6 +74,8 @@ class IncomeCrudController extends AbstractCrudController
         $balance = $income?->getBalance();
 
         return [
+            FormField::addColumn(8),
+            FormField::addFieldset(),
             TextField::new('name'),
             AssociationField::new('balance')
                 ->setFormTypeOptions([
@@ -96,6 +106,9 @@ class IncomeCrudController extends AbstractCrudController
                 })
                 ->setSortable(true)
                 ->hideOnForm(),
+
+            FormField::addColumn(4),
+            FormField::addFieldset(),
             DateTimeField::new('created_at')
                 ->setFormTypeOption('model_timezone', 'UTC')
                 ->setFormTypeOption('view_timezone', $timezone)
@@ -120,12 +133,70 @@ class IncomeCrudController extends AbstractCrudController
         ;
     }
 
+    public function configureActions(Actions $actions): Actions
+    {
+        $duplicate = Action::new('duplicate')
+            ->setIcon('fa fa-copy')
+            ->linkToUrl(
+                fn(Income $entity) => $this->adminUrlGenerator
+                    ->setAction(Action::EDIT)
+                    ->setEntityId($entity->getId())
+                    ->set('duplicate', '1')
+                    ->generateUrl()
+            );
+
+        return parent::configureActions($actions)
+            ->add(Crud::PAGE_DETAIL, $duplicate)
+        ;
+    }
+
+    /**
+     * @see https://github.com/EasyCorp/EasyAdminBundle/issues/3937#issuecomment-1255896369
+     * @see self::udpateEntity()
+     */
+    public function edit(AdminContext $context): KeyValueStore|Response
+    {
+        if ($context->getRequest()->query->has('duplicate')) {
+            /** @var Income $entity */
+            $entity = $context->getEntity()->getInstance();
+            $cloned = clone $entity;
+            $cloned->setCreatedAt(new \DateTimeImmutable('now'));
+            $context->getEntity()->setInstance($cloned);
+        }
+
+        return parent::edit($context);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Income $entityInstance
+     * @return void
+     */
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        $uow = $entityManager->getUnitOfWork();
+
+        // Check if the edited entity is a duplicate
+        if (!$uow->isInIdentityMap($entityInstance)) {
+            $this->updateBalance($entityManager, $entityInstance);
+        }
+
+        parent::updateEntity($entityManager, $entityInstance);
+    }
+
     /**
      * @param EntityManagerInterface $entityManager
      * @param Income $entityInstance
      * @return void
      */
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        $this->updateBalance($entityManager, $entityInstance);
+
+        parent::persistEntity($entityManager, $entityInstance);
+    }
+
+    private function updateBalance(EntityManagerInterface $entityManager, Income $entityInstance): void
     {
         $balance = $entityInstance->getBalance();
 
@@ -135,7 +206,5 @@ class IncomeCrudController extends AbstractCrudController
         $entityManager->flush();
 
         $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
-
-        parent::persistEntity($entityManager, $entityInstance);
     }
 }
