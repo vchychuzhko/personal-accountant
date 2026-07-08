@@ -468,9 +468,6 @@ class DashboardController extends AbstractDashboardController
                     'display' => true,
                     'text' => $title,
                 ],
-                'autocolors' => [
-                    'mode' => 'data',
-                ],
             ],
         ]);
 

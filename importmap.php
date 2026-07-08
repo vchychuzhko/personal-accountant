@@ -27,9 +27,6 @@ return [
     'chart.js' => [
         'version' => '4.4.1',
     ],
-    'chartjs-plugin-autocolors' => [
-        'version' => '0.3.1',
-    ],
     '@kurkle/color' => [
         'version' => '0.3.2',
     ],

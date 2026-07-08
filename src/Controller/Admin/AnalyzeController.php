@@ -204,9 +204,6 @@ class AnalyzeController extends AbstractController
                     'display' => true,
                     'text' => $title,
                 ],
-                'autocolors' => [
-                    'mode' => 'data',
-                ],
             ],
         ]);
 

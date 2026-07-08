@@ -7,12 +7,12 @@ import './stimulus_bootstrap.js';
  */
 import './styles/app.css';
 
-import autocolors from 'chartjs-plugin-autocolors';
+import { Colors } from 'chart.js';
 
 document.addEventListener('chartjs:init', function (event) {
     const Chart = event.detail.Chart;
 
-    Chart.register(autocolors);
+    Chart.register(Colors);
 });
 
 console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');
