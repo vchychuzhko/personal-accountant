@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Balance;
 use App\Entity\Currency;
 use App\Entity\Deposit;
+use App\Entity\Investment;
 use App\Repository\BalanceRepository;
 use App\Repository\CurrencyRepository;
 use App\Repository\DepositRepository;
@@ -79,6 +80,7 @@ class DashboardController extends AbstractDashboardController
             ],
             'assets_by_balance_chart' => $this->getAssetsByBalanceChart(),
             'assets_by_currency_chart' => $this->getAssetsByCurrencyChart(),
+            'assets_by_type_chart' => $this->getAssetsByTypeChart(),
             'expenses_by_tag_chart' => $this->getExpensesByTagChart(),
         ]);
     }
@@ -146,15 +148,22 @@ class DashboardController extends AbstractDashboardController
 
     private function getGrandTotal(): float
     {
-        $balances = $this->balanceRepository->findAll();
+        $balancesTotal = $this->getTotalInBalances();
         $depositTotal = $this->getTotalInDeposits();
-        $total = 0;
+
+        return $balancesTotal + $depositTotal;
+    }
+
+    private function getTotalInBalances(): float
+    {
+        $balances = $this->balanceRepository->findAllActive();
+        $totalInBalances = 0;
 
         foreach ($balances as $balance) {
-            $total += $balance->getAmountInUsd();
+            $totalInBalances += $balance->getAmountInUsd();
         }
 
-        return $total + $depositTotal;
+        return $totalInBalances;
     }
 
     private function getTotalInDeposits(): float
@@ -183,11 +192,11 @@ class DashboardController extends AbstractDashboardController
 
     private function getTotalInInvestments(): float
     {
-        $investments = $this->investmentRepository->findAll();
+        $investments = $this->investmentRepository->findAllActive();
         $totalInInvestments = 0;
 
         foreach ($investments as $investment) {
-            $totalInInvestments += $investment->getValue();
+            $totalInInvestments += $investment->getValueInUsd();
         }
 
         return $totalInInvestments;
@@ -340,16 +349,7 @@ class DashboardController extends AbstractDashboardController
             $item->expiresAfter(86400);
             $item->tag(self::DASHBOARD_CACHE_TAG);
 
-            $balances = $this->balanceRepository->findAll();
-            $chart1 = $this->chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
-            $chart1->setData([
-                'labels' => array_map(fn(Balance $balance) => $balance->__toString(), $balances),
-                'datasets' => [
-                    [
-                        'data' => array_map(fn(Balance $balance) => number_format($balance->getAmountInUsd(), 2, '.', ''), $balances),
-                    ],
-                ],
-            ]);
+            $balances = $this->balanceRepository->findAllActive();
 
             $data = array_map(function (Balance $balance) {
                 return [
@@ -396,6 +396,41 @@ class DashboardController extends AbstractDashboardController
         });
 
         return $this->getDoughnutChart($data, 'Assets by currency (in USD)');
+    }
+
+    private function getAssetsByTypeChart(): Chart
+    {
+        $now = (new \DateTime())->format('j');
+
+        $data = $this->cache->get('assets_by_type__' . $now, function (ItemInterface $item) {
+            $item->expiresAfter(86400);
+            $item->tag(self::DASHBOARD_CACHE_TAG);
+
+            $balancesTotal = $this->getTotalInBalances();
+            $depositsTotal = $this->getTotalInDeposits();
+            $investmentsTotal = $this->getTotalInInvestments();
+
+            $data = [
+                [
+                    'label' => 'Balances',
+                    'value' => number_format($balancesTotal, 2, '.', ''),
+                ],
+                [
+                    'label' => 'Deposits',
+                    'value' => number_format($depositsTotal, 2, '.', ''),
+                ],
+                [
+                    'label' => 'Investments',
+                    'value' => number_format($investmentsTotal, 2, '.', ''),
+                ],
+            ];
+
+            usort($data, fn($a, $b) => $b['value'] <=> $a['value']);
+
+            return $data;
+        });
+
+        return $this->getDoughnutChart($data, 'Assets by type (in USD)');
     }
 
     private function getExpensesByTagChart(): Chart

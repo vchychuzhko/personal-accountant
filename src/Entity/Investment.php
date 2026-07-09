@@ -92,6 +92,13 @@ class Investment
         return $this->isActive() ? $this->getShare() * $this->getPrice() : $this->getSoldValue();
     }
 
+    public function getValueInUsd(): ?float
+    {
+        $currency = $this->getCurrency();
+
+        return $this->getValue() / $currency->getRate();
+    }
+
     public function setPrice(float $price): static
     {
         $this->price = $price;
