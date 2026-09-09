@@ -9,6 +9,7 @@ use App\Entity\Investment;
 use App\Repository\BalanceRepository;
 use App\Repository\CurrencyRepository;
 use App\Repository\DepositRepository;
+use App\Repository\ExchangeRepository;
 use App\Repository\IncomeRepository;
 use App\Repository\InvestmentRepository;
 use App\Repository\LoanRepository;
@@ -40,6 +41,7 @@ class DashboardController extends AbstractDashboardController
         private readonly CurrencyRepository $currencyRepository,
         private readonly ChartBuilderInterface $chartBuilder,
         private readonly DepositRepository $depositRepository,
+        private readonly ExchangeRepository $exchangeRepository,
         private readonly IncomeRepository $incomeRepository,
         private readonly InvestmentRepository $investmentRepository,
         private readonly LoanRepository $loanRepository,
@@ -51,13 +53,15 @@ class DashboardController extends AbstractDashboardController
     public function index(): Response
     {
         $incomesThisMonth = $this->getIncomesThisMonth();
-        $expensesThisMonth = $this->getExpensesThisMonth();
+        $exchangeDifferenceThisMonth = $this->getExchangeDifferenceThisMonth();
+        $expensesThisMonth = $this->getPaymentsThisMonth();
 
         return $this->render('admin/index.html.twig', [
             'total' => PriceUtils::format($this->getGrandTotal()),
             'incomes_this_month' => PriceUtils::format($incomesThisMonth),
-            'expenses_this_month' => PriceUtils::format($expensesThisMonth),
-            'diff_this_month' => PriceUtils::format($incomesThisMonth - $expensesThisMonth),
+            'exchange_difference_this_month' => PriceUtils::format($exchangeDifferenceThisMonth),
+            'payments_this_month' => PriceUtils::format($expensesThisMonth),
+            'difference_this_month' => PriceUtils::format($incomesThisMonth + $exchangeDifferenceThisMonth - $expensesThisMonth),
             'total_in_deposits' => PriceUtils::format($this->getTotalInDeposits()),
             'total_in_investments' => PriceUtils::format($this->getTotalInInvestments()),
             'total_in_loans' => PriceUtils::format($this->getTotalInLoans()),
@@ -215,17 +219,32 @@ class DashboardController extends AbstractDashboardController
         return $incomesThisMonth;
     }
 
-    private function getExpensesThisMonth(): float
+    private function getExchangeDifferenceThisMonth(): float
+    {
+        $day = new \DateTime('first day of this month 00:00:00');
+        $exchanges = $this->exchangeRepository->findAfterDate($day);
+        $exchangesFromThisMonth = 0;
+        $exchangesToThisMonth = 0;
+
+        foreach ($exchanges as $exchange) {
+            $exchangesFromThisMonth += $exchange->getAmountInUsd();
+            $exchangesToThisMonth += $exchange->getResultInUsd();
+        }
+
+        return $exchangesToThisMonth - $exchangesFromThisMonth;
+    }
+
+    private function getPaymentsThisMonth(): float
     {
         $day = new \DateTime('first day of this month 00:00:00');
         $payments = $this->paymentRepository->findAfterDate($day);
-        $expensesThisMonth = 0;
+        $paymentsThisMonth = 0;
 
         foreach ($payments as $payment) {
-            $expensesThisMonth += $payment->getAmountInUsd();
+            $paymentsThisMonth += $payment->getAmountInUsd();
         }
 
-        return $expensesThisMonth;
+        return $paymentsThisMonth;
     }
 
     private function getTotalsChart(string $startDay, string $step): Chart

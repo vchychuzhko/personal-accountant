@@ -20,7 +20,7 @@ final class Version20250513093039 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('INSERT INTO configuration (name, label, value) VALUES ("timezone", "Timezone", "Europe/Warsaw")');
+        $this->addSql('INSERT INTO configuration (name, label, value) VALUES ("timezone", "Timezone", "Europe/Kyiv")');
     }
 
     public function down(Schema $schema): void
