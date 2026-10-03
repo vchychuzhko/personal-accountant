@@ -1,17 +1,17 @@
 services:
-    pa-app:
+    app:
         image: vchychuzhko/personal-accountant:latest
         restart: unless-stopped
         ports:
             - "8996:80"
         environment:
             APP_ENV: prod
-            DATABASE_URL: mysql://app:app@pa-db:3306/app?serverVersion=10.11.0-MariaDB
+            DATABASE_URL: mysql://app:app@db:3306/app?serverVersion=10.11.0-MariaDB
             DEFAULT_URI: http://localhost
         depends_on:
-            - pa-db
+            - db
 
-    pa-db:
+    db:
         image: mariadb:10.11
         restart: unless-stopped
         environment:

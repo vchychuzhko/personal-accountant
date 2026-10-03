@@ -4,30 +4,25 @@ Official production-ready image - [Docker Hub](https://hub.docker.com/r/vchychuz
 
 ## Compose
 
-[docker-compose.prod.yml](../docker-compose.prod.yml) contains a ready-to-use configuration, that can be used in, for example, Portainer Stack.
+[docker-compose.prod.yml](../docker-compose.prod.yml) contains a ready-to-use configuration that can be used in, for example, Portainer or Dockhand Stack.
 
 Pay attention to default values:
 - Database credentials: `app:app`
 - Port: `8996`
+- Image: if deployed to an ARM architecture system (like Rasperry Pi), use `:arm` tag
 
-## Build
-
-### Build image:
+## Build and Push
 
 ```bash
-docker build --network=host -f .docker/php/Dockerfile -t vchychuzhko/personal-accountant:1.0 .
+docker build --network=host -f .docker/php/Dockerfile -t vchychuzhko/personal-accountant:latest --push .
 ```
 
 Use `--network=host` flag for ufw compatibility.
 
-### Push image:
+### ARM version
+
+To use the ARM version, build and deploy it from an ARM architecture system (like Rasperry Pi):
 
 ```bash
-docker push vchychuzhko/personal-accountant:1.0
-```
-
-Optionally push "latest" image:
-
-```bash
-docker push vchychuzhko/personal-accountant:latest
+docker build -f .docker/php/Dockerfile -t vchychuzhko/personal-accountant:arm --push .
 ```

@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
     git unzip libicu-dev libzip-dev \
     && docker-php-ext-install pdo pdo_mysql intl zip opcache
 
-RUN curl -sS https://webi.sh/caddy | sh
+COPY --from=caddy:2 /usr/bin/caddy /usr/bin/caddy
 
 WORKDIR /app
 

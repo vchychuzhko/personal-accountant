@@ -13,9 +13,7 @@ php bin/console doctrine:migrations:migrate --no-interaction
 
 echo "Starting PHP-FPM and Caddy server..."
 
-export PATH=$PATH:/root/.local/bin # include caddy bin
-
-chown -R nobody:nobody /app
+chown -R www-data:www-data /app/var
 
 php-fpm &
-caddy run --config /etc/caddy/Caddyfile
+exec caddy run --config /etc/caddy/Caddyfile
