@@ -29,7 +29,6 @@ App to keep all balances and transactions organized.
 - PHP 8.4
 - Composer 2
 - MariaDB 10.11
-- Node 22
 
 ### Docker
 
