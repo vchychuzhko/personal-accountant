@@ -74,7 +74,9 @@ class InvestmentCrudController extends AbstractCrudController
             FormField::addFieldset(),
             TextField::new('name'),
             NumberField::new('share')
-                ->setNumDecimals(4),
+                ->formatValue(function ($value) {
+                    return rtrim(rtrim(number_format($value, 4, '.', ''), '0'), '.');
+                }),
             AssociationField::new('currency'),
             NumberField::new('price')
                 ->formatValue(function ($value, Investment $entity) {
@@ -252,10 +254,16 @@ class InvestmentCrudController extends AbstractCrudController
         $existingIncomes = $entityManager->getRepository(Income::class)->findBy(['investment' => $entityInstance]);
 
         // Detach removed
-        foreach ([...$existingPayments, ...$existingIncomes] as $existing) {
-            if (!$currentPayments->contains($existing) || $currentIncomes->contains($existing)) {
-                $existing->setInvestment(null);
-                $entityManager->persist($existing);
+        foreach ($existingPayments as $payment) {
+            if (!$currentPayments->contains($payment)) {
+                $payment->setInvestment(null);
+                $entityManager->persist($payment);
+            }
+        }
+        foreach ($existingIncomes as $income) {
+            if (!$currentIncomes->contains($income)) {
+                $income->setInvestment(null);
+                $entityManager->persist($income);
             }
         }
 
