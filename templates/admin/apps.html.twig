@@ -1,103 +1,124 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
 
 {% block page_title %}Applications{% endblock %}
+{% block content_title %}Applications{% endblock %}
 
 {% block main %}
 <div class="row">
-    <div class="col-md-6">
-        <h4>Deposit Calculator</h4>
-        <form {{ stimulus_controller('calculator') }}>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="field-number form-group">
-                        <label for="amount" class="form-control-label">Amount</label>
-                        <div class="form-widget">
-                            <input type="number" id="amount" name="amount" value="0" step="1000"
-                                   inputmode="decimal" class="form-control"
-                                   {{ stimulus_action('calculator', 'update', 'input') }}
-                            >
-                        </div>
-                    </div>
-                </div>
-                <div class="flex-fill"></div>
-                <div class="col-md-6">
+    <div class="col-12">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <button
+                    class="nav-link active"
+                    data-bs-toggle="tab" data-bs-target="#calculator" role="tab"
+                >
+                    Deposit Calculator
+                </button>
+            </li>
+            <li class="nav-item">
+                <button
+                    class="nav-link"
+                    data-bs-toggle="tab" data-bs-target="#converter" role="tab"
+                >
+                    Currency Converter
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content pt-4">
+            <div class="tab-pane show active" id="calculator" role="tabpanel">
+                <form {{ stimulus_controller('calculator') }}>
                     <div class="row">
-                        <div class="col-4">
+                        <div class="col-md-3">
                             <div class="field-number form-group">
-                                <label for="interest" class="form-control-label">Interest</label>
+                                <label for="amount" class="form-control-label">Amount</label>
                                 <div class="form-widget">
-                                    <input type="number" id="interest" name="interest" value="0" step="0.5"
+                                    <input type="number" id="amount" name="amount" value="0" step="1000"
                                            inputmode="decimal" class="form-control"
                                            {{ stimulus_action('calculator', 'update', 'input') }}
                                     >
-                                    <small class="form-text form-help">Annual, in %</small>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4">
-                            <div class="field-number form-group">
-                                <label for="tax" class="form-control-label">Tax</label>
-                                <div class="form-widget">
-                                    <input type="number" id="tax" name="tax" value="0" step="1"
-                                           inputmode="decimal" class="form-control"
-                                           {{ stimulus_action('calculator', 'update', 'input') }}
-                                    >
-                                    <small class="form-text form-help">in %</small>
+                        <div class="flex-fill"></div>
+                        <div class="col-md-3">
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="field-number form-group">
+                                        <label for="interest" class="form-control-label">Interest</label>
+                                        <div class="form-widget">
+                                            <input type="number" id="interest" name="interest" value="0" step="0.5"
+                                                   inputmode="decimal" class="form-control"
+                                                   {{ stimulus_action('calculator', 'update', 'input') }}
+                                            >
+                                            <small class="form-text form-help">annual, in %</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="field-number form-group">
+                                        <label for="tax" class="form-control-label">Tax</label>
+                                        <div class="form-widget">
+                                            <input type="number" id="tax" name="tax" value="0" step="1"
+                                                   inputmode="decimal" class="form-control"
+                                                   {{ stimulus_action('calculator', 'update', 'input') }}
+                                            >
+                                            <small class="form-text form-help">in %</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="field-number form-group">
+                                        <label for="period" class="form-control-label">Period</label>
+                                        <div class="form-widget">
+                                            <input type="number" id="period" name="period" value="12"
+                                                   inputmode="decimal" class="form-control"
+                                                   {{ stimulus_action('calculator', 'update', 'input') }}
+                                            >
+                                            <small class="form-text form-help">months</small>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4">
+                        <div class="flex-fill"></div>
+                        <div class="col-md-3">
                             <div class="field-number form-group">
-                                <label for="period" class="form-control-label">Period</label>
+                                <label for="result" class="form-control-label">Result</label>
                                 <div class="form-widget">
-                                    <input type="number" id="period" name="period" value="12"
-                                           inputmode="decimal" class="form-control"
-                                           {{ stimulus_action('calculator', 'update', 'input') }}
+                                    <input type="number" id="result" name="result" value="0.00"
+                                           inputmode="decimal" class="form-control" readonly
+                                           {{ stimulus_target('calculator', 'result') }}
                                     >
-                                    <small class="form-text form-help">months</small>
+                                    <small class="form-text form-help"{{ stimulus_target('calculator', 'difference') }}>+ 0.00</small>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="flex-fill"></div>
-                <div class="col-md-6">
-                    <div class="field-number form-group">
-                        <label for="result" class="form-control-label">Result</label>
-                        <div class="form-widget">
-                            <input type="number" id="result" name="result" value="0.00"
-                                   inputmode="decimal" class="form-control" readonly
-                                   {{ stimulus_target('calculator', 'result') }}
-                            >
-                            <small class="form-text form-help"{{ stimulus_target('calculator', 'difference') }}>+ 0.00</small>
-                        </div>
-                    </div>
-                </div>
+                </form>
             </div>
-        </form>
-    </div>
-    <div class="col-md-6">
-        <h4>Currency Converter</h4>
-        <form {{ stimulus_controller('converter') }}>
-            <div class="row">
-                {% for currency in currencies %}
-                    <div class="col-md-6">
-                        <div class="field-number form-group">
-                            <label for="{{ currency.code | lower }}" class="form-control-label">{{ currency.name }}</label>
-                            <div class="form-widget">
-                                <input type="number" id="{{ currency.code | lower }}" name="{{ currency.code | lower }}"
-                                       value="{{ currency.rate | number_format(2) }}" data-rate="{{ currency.rate }}"
-                                       inputmode="decimal" class="form-control"
-                                       {{ stimulus_target('converter', 'input') }}
-                                       {{ stimulus_action('converter', 'update', 'input') }}
-                                >
+            <div class="tab-pane" id="converter" role="tabpanel">
+                <form {{ stimulus_controller('converter') }}>
+                    <div class="row">
+                        {% for currency in currencies %}
+                            <div class="col-md-3">
+                                <div class="field-number form-group">
+                                    <label for="{{ currency.code | lower }}" class="form-control-label">{{ currency.name }}</label>
+                                    <div class="form-widget">
+                                        <input type="number" id="{{ currency.code | lower }}" name="{{ currency.code | lower }}"
+                                               value="{{ currency.rate | number_format(2) }}" data-rate="{{ currency.rate }}"
+                                               inputmode="decimal" class="form-control"
+                                               {{ stimulus_target('converter', 'input') }}
+                                               {{ stimulus_action('converter', 'update', 'input') }}
+                                        >
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                            <div class="flex-fill"></div>
+                        {% endfor %}
                     </div>
-                    <div class="flex-fill"></div>
-                {% endfor %}
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -13,6 +13,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -39,6 +40,8 @@ class ExchangeCrudController extends AbstractCrudController
         $balanceTo = $income?->getBalanceTo();
 
         return [
+            FormField::addColumn(8),
+            FormField::addFieldset(),
             AssociationField::new('balance_from')
                 ->setFormTypeOptions([
                     'query_builder' => function (EntityRepository $repository) use ($balanceFrom) {
@@ -88,6 +91,9 @@ class ExchangeCrudController extends AbstractCrudController
             NumberField::new('rate')
                 ->formatValue(fn($value) => rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.'))
                 ->hideOnForm(),
+
+            FormField::addColumn(4),
+            FormField::addFieldset(),
             DateTimeField::new('created_at')
                 ->setFormTypeOption('model_timezone', 'UTC')
                 ->setFormTypeOption('view_timezone', $timezone)
