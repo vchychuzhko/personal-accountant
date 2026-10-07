@@ -10,22 +10,16 @@
 <div id="modal-complete" class="modal fade" tabindex="-1" aria-modal="true" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="mb-0">Complete your deposit</h4>
-            </div>
             <div class="modal-body">
+                <h4>Do you want to complete this deposit?</h4>
                 <form id="complete-form" action="{{ action.linkUrl }}" method="POST">
                     <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ ea().entity.primaryKeyValue) }}">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="field-number form-group">
-                                <label for="profit" class="form-control-label">Actual Profit</label>
-                                <div class="form-widget">
-                                    <input type="number" id="profit" name="profit" value="{{ ea().entity.instance.profit | number_format(2) }}"
-                                           inputmode="decimal" class="form-control" step="any"
-                                    >
-                                </div>
-                            </div>
+                    <div class="field-number form-group">
+                        <label for="profit" class="form-control-label">Profit:</label>
+                        <div class="form-widget">
+                            <input type="number" id="profit" name="profit" value="{{ ea().entity.instance.profit | number_format(2) }}"
+                                   inputmode="decimal" class="form-control" step="any"
+                            >
                         </div>
                     </div>
                 </form>

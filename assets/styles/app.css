@@ -3,15 +3,14 @@
 }
 
 .actions .btn {
-    background: none;
-    border: none;
-    box-shadow: none;
-    color: var(--link-color);
-    padding: 0;
-}
-.actions .btn:not(:disabled):not(.disabled):hover {
-    background: none;
-    color: var(--link-hover-color);
+    --button-bg: none;
+    --button-border-width: 0;
+    --button-box-shadow: none;
+    --button-color: var(--link-color);
+    --button-hover-bg: none;
+    --button-hover-color: var(--link-hover-color);
+    --button-padding-x: 0;
+    --button-padding-y: 0;
 }
 .actions .btn .icon {
     display: none;

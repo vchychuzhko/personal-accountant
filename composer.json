@@ -7,26 +7,26 @@
         "php": ">=8.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "doctrine/dbal": "^3",
-        "doctrine/doctrine-bundle": "^2.18",
-        "doctrine/doctrine-migrations-bundle": "^3.7",
-        "doctrine/orm": "^3.6",
-        "easycorp/easyadmin-bundle": "^5.0",
+        "doctrine/dbal": "^3.10.6",
+        "doctrine/doctrine-bundle": "^2.19.1",
+        "doctrine/doctrine-migrations-bundle": "^3.7.1",
+        "doctrine/orm": "^3.7.4",
+        "easycorp/easyadmin-bundle": "^5.6.1",
         "symfony/asset": "7.4.*",
         "symfony/asset-mapper": "7.4.*",
         "symfony/console": "7.4.*",
         "symfony/dotenv": "7.4.*",
-        "symfony/flex": "^2",
+        "symfony/flex": "^2.11",
         "symfony/framework-bundle": "7.4.*",
-        "symfony/monolog-bundle": "^4.0",
+        "symfony/monolog-bundle": "^4.1",
         "symfony/runtime": "7.4.*",
         "symfony/security-bundle": "7.4.*",
-        "symfony/stimulus-bundle": "^2.32",
+        "symfony/stimulus-bundle": "^2.36",
         "symfony/twig-bundle": "7.4.*",
-        "symfony/ux-chartjs": "^2.32",
+        "symfony/ux-chartjs": "^2.36",
         "symfony/yaml": "7.4.*",
-        "twig/extra-bundle": "^3.22",
-        "twig/twig": "^3.22"
+        "twig/extra-bundle": "^3.29",
+        "twig/twig": "^3.30"
     },
     "config": {
         "allow-plugins": {
@@ -80,6 +80,6 @@
         }
     },
     "require-dev": {
-        "symfony/maker-bundle": "^1.65"
+        "symfony/maker-bundle": "^1.68"
     }
 }
