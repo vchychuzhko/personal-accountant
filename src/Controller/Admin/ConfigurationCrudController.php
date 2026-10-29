@@ -8,6 +8,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -23,20 +24,27 @@ class ConfigurationCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
+            FormField::addColumn(12),
+            FormField::addFieldset(),
             TextField::new('label'),
-            TextField::new('name')
-                ->hideOnIndex()
-                ->setDisabled(),
             TextField::new('value')
                 ->hideOnIndex()
                 ->setTemplatePath('admin/fields/secured_text.html.twig'),
         ];
     }
 
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            ->setDefaultSort(['label' => 'ASC'])
+        ;
+    }
+
     public function configureActions(Actions $actions): Actions
     {
         $clearCache = Action::new('clearCache')
             ->linkToCrudAction('clearCache')
+            ->renderAsForm()
             ->createAsGlobalAction();
 
         return parent::configureActions($actions)
@@ -46,7 +54,7 @@ class ConfigurationCrudController extends AbstractCrudController
         ;
     }
 
-    #[AdminRoute('/clear-cache')]
+    #[AdminRoute('/clear-cache', options: ['methods' => ['POST']])]
     public function clearCache(
         TagAwareCacheInterface $cache,
         AdminUrlGenerator $adminUrlGenerator

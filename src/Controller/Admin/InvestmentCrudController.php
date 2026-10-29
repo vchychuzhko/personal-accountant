@@ -146,6 +146,7 @@ class InvestmentCrudController extends AbstractCrudController
     {
         $updateRates = Action::new('updatePrices')
             ->linkToCrudAction('updatePrices')
+            ->renderAsForm()
             ->createAsGlobalAction();
 
         return parent::configureActions($actions)
@@ -156,8 +157,9 @@ class InvestmentCrudController extends AbstractCrudController
     /**
      * @see https://eodhd.com/financial-apis/live-ohlcv-stocks-api
      */
-    #[AdminRoute('/update-prices')]
-    public function updatePrices(AdminContext $context): RedirectResponse {
+    #[AdminRoute('/update-prices', options: ['methods' => ['POST']])]
+    public function updatePrices(AdminContext $context): RedirectResponse
+    {
         try {
             /** @var ConfigurationRepository $configRepository */
             $configRepository = $this->entityManager->getRepository(Configuration::class);

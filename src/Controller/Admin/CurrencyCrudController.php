@@ -94,6 +94,7 @@ class CurrencyCrudController extends AbstractCrudController
     {
         $updateRates = Action::new('updateRates')
             ->linkToCrudAction('updateRates')
+            ->renderAsForm()
             ->createAsGlobalAction();
 
         return parent::configureActions($actions)
@@ -105,7 +106,7 @@ class CurrencyCrudController extends AbstractCrudController
     /**
      * @see https://currencyapi.com/docs/latest
      */
-    #[AdminRoute('/update-rates')]
+    #[AdminRoute('/update-rates', options: ['methods' => ['POST']])]
     public function updateRates(AdminContext $context): RedirectResponse
     {
         try {
