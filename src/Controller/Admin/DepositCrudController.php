@@ -14,7 +14,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
@@ -29,8 +28,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class DepositCrudController extends AbstractCrudController
@@ -158,11 +157,11 @@ class DepositCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $complete = Action::new('complete')
-            ->linkToRoute('admin_deposit_complete', fn(Deposit $deposit) => ['entityId' => $deposit->getId()])
+            ->linkToCrudAction('complete')
             ->setTemplatePath('admin/actions/deposit_complete.html.twig')
             ->displayIf(fn(Deposit $deposit) => $deposit->isActive());
         $cancel = Action::new('cancel')
-            ->linkToRoute('admin_deposit_cancel', fn(Deposit $deposit) => ['entityId' => $deposit->getId()])
+            ->linkToCrudAction('cancel')
             ->setTemplatePath('admin/actions/deposit_cancel.html.twig')
             ->displayIf(fn(Deposit $deposit) => $deposit->isActive());
 
@@ -175,14 +174,10 @@ class DepositCrudController extends AbstractCrudController
         ;
     }
 
-    #[AdminRoute('/{entityId}/complete', options: ['methods' => ['POST']])]
-    public function complete(
-        AdminContext $context,
-        #[MapEntity(id: 'entityId')] Deposit $deposit,
-    ): RedirectResponse {
-        $request = $context->getRequest();
-
-        if (!$this->isCsrfTokenValid('complete' . $deposit->getId(), $request->request->get('_token'))) {
+    #[AdminRoute('/{id}/complete', options: ['methods' => ['POST']])]
+    public function complete(Deposit $deposit, Request $request): RedirectResponse
+    {
+        if (!$this->isCsrfTokenValid('complete', $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token');
         }
 
@@ -217,14 +212,10 @@ class DepositCrudController extends AbstractCrudController
         return $this->redirect($targetUrl);
     }
 
-    #[AdminRoute('/{entityId}/cancel', options: ['methods' => ['POST']])]
-    public function cancel(
-        AdminContext $context,
-        #[MapEntity(id: 'entityId')] Deposit $deposit,
-    ): RedirectResponse {
-        $request = $context->getRequest();
-
-        if (!$this->isCsrfTokenValid('cancel' . $deposit->getId(), $request->request->get('_token'))) {
+    #[AdminRoute('/{id}/cancel', options: ['methods' => ['POST']])]
+    public function cancel(Deposit $deposit, Request $request): RedirectResponse
+    {
+        if (!$this->isCsrfTokenValid('cancel', $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Invalid CSRF token');
         }
 

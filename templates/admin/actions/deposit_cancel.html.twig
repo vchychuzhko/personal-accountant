@@ -1,7 +1,7 @@
 {# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
 {# @var action \EasyCorp\Bundle\EasyAdminBundle\Dto\ActionDto #}
 <button class="btn btn-danger" data-action-name="cancel" data-bs-toggle="modal" data-bs-target="#modal-cancel">
-    <twig:ea:Icon name="internal:xmark" class="btn-icon" />
+    <i class="fa fa-xmark btn-icon"></i>
     <span class="btn-label">
         <span class="action-label">Cancel</span>
     </span>
@@ -13,7 +13,7 @@
             <div class="modal-body">
                 <h4>Do you really want to cancel this deposit?</h4>
                 <form id="cancel-form" action="{{ action.linkUrl }}" method="POST">
-                    <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ ea().entity.primaryKeyValue) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('cancel') }}">
                 </form>
             </div>
             <div class="modal-footer">

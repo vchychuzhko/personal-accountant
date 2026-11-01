@@ -8,7 +8,7 @@
         .unsetAll()
         .setController('App\\Controller\\Admin\\DepositCrudController')
         .setAction('index')
-        .set('filters[balance][value]', entity.primaryKeyValue)
+        .set('filters[balance][value][]', entity.primaryKeyValue)
         .set('filters[balance][comparison]', '=')
         .set('filters[status][value]', 0)
         .set('filters[status][comparison]', '=')

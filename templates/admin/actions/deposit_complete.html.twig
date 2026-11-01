@@ -1,7 +1,7 @@
 {# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
 {# @var action \EasyCorp\Bundle\EasyAdminBundle\Dto\ActionDto #}
 <button class="btn btn-success" data-action-name="complete" data-bs-toggle="modal" data-bs-target="#modal-complete">
-    <twig:ea:Icon name="internal:check" class="btn-icon" />
+    <i class="fa fa-check btn-icon"></i>
     <span class="btn-label">
         <span class="action-label">Complete</span>
     </span>
@@ -13,7 +13,7 @@
             <div class="modal-body">
                 <h4>Do you want to complete this deposit?</h4>
                 <form id="complete-form" action="{{ action.linkUrl }}" method="POST">
-                    <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ ea().entity.primaryKeyValue) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('complete') }}">
                     <div class="field-number form-group">
                         <label for="profit" class="form-control-label">Profit:</label>
                         <div class="form-widget">
