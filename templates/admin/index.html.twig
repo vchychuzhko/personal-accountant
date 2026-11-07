@@ -5,21 +5,14 @@
 {% block main %}
 <div class="row row-gap-3">
     <div class="col-12 col-md-8">
-        <ul class="nav nav-pills justify-content-center">
+        <twig:ea:Tabs class="justify-content-center">
             {% for index, chart in main_charts %}
-                <li class="nav-item">
-                    <button
-                        class="nav-link{% if index == 0 %} active{% endif %}"
-                        data-bs-toggle="tab" data-bs-target="#{{ chart.id }}" role="tab"
-                    >
-                        {{ chart.title }}
-                    </button>
-                </li>
+                <twig:ea:Tabs:Item paneId="tab-{{ chart.id }}" label="{{ chart.title }}" active="{{ index == 0 }}" />
             {% endfor %}
-        </ul>
+        </twig:ea:Tabs>
         <div class="tab-content">
             {% for index, chart in main_charts %}
-                <div class="tab-pane{% if index == 0 %} show active{% endif %}" id="{{ chart.id }}" role="tabpanel">
+                <div class="tab-pane{% if index == 0 %} active{% endif %}" id="tab-{{ chart.id }}">
                     {{ render_chart(chart.chart) }}
                 </div>
             {% endfor %}

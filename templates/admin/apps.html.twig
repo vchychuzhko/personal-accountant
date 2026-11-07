@@ -6,26 +6,12 @@
 {% block main %}
 <div class="row">
     <div class="col-12">
-        <ul class="nav nav-tabs">
-            <li class="nav-item">
-                <button
-                    class="nav-link active"
-                    data-bs-toggle="tab" data-bs-target="#calculator" role="tab"
-                >
-                    Deposit Calculator
-                </button>
-            </li>
-            <li class="nav-item">
-                <button
-                    class="nav-link"
-                    data-bs-toggle="tab" data-bs-target="#converter" role="tab"
-                >
-                    Currency Converter
-                </button>
-            </li>
-        </ul>
+        <twig:ea:Tabs>
+            <twig:ea:Tabs:Item paneId="tab-calculator" label="Deposit Calculator" active />
+            <twig:ea:Tabs:Item paneId="tab-converter" label="Currency Converter" />
+        </twig:ea:Tabs>
         <div class="tab-content pt-4">
-            <div class="tab-pane show active" id="calculator" role="tabpanel">
+            <div class="tab-pane active" id="tab-calculator">
                 <form {{ stimulus_controller('calculator') }}>
                     <div class="row">
                         <div class="col-md-3">
@@ -96,7 +82,7 @@
                     </div>
                 </form>
             </div>
-            <div class="tab-pane" id="converter" role="tabpanel">
+            <div class="tab-pane" id="tab-converter">
                 <form {{ stimulus_controller('converter') }}>
                     <div class="row">
                         {% for currency in currencies %}

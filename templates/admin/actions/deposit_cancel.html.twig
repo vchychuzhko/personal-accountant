@@ -1,29 +1,15 @@
 {# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
 {# @var action \EasyCorp\Bundle\EasyAdminBundle\Dto\ActionDto #}
-<button class="btn btn-danger" data-action-name="cancel" data-bs-toggle="modal" data-bs-target="#modal-cancel">
-    <i class="fa fa-xmark btn-icon"></i>
-    <span class="btn-label">
-        <span class="action-label">Cancel</span>
-    </span>
-</button>
+<twig:ea:Modal:Trigger target="#cancel-modal" icon="fa fa-xmark" color="danger">Cancel</twig:ea:Modal:Trigger>
 
-<div id="modal-cancel" class="modal fade" tabindex="-1" aria-modal="true" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-body">
-                <h4>Do you really want to cancel this deposit?</h4>
-                <form id="cancel-form" action="{{ action.linkUrl }}" method="POST">
-                    <input type="hidden" name="_token" value="{{ csrf_token('cancel') }}">
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" data-bs-dismiss="modal" class="btn btn-secondary">
-                    <span class="btn-label">No</span>
-                </button>
-                <button type="submit" data-bs-dismiss="modal" class="btn btn-danger" id="modal-cancel-button" form="cancel-form">
-                    <span class="btn-label">Confirm</span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<twig:ea:Modal id="cancel-modal" title="Do you really want to cancel this deposit?">
+    <twig:block name="body">
+        <form id="cancel-form" action="{{ action.linkUrl }}" method="POST">
+            <input type="hidden" name="_token" value="{{ csrf_token('cancel') }}">
+        </form>
+    </twig:block>
+    <twig:block name="footer">
+        <twig:ea:Modal:Close>No</twig:ea:Modal:Close>
+        <twig:ea:Button color="danger" variant="solid" data-bs-dismiss="modal" form="cancel-form">Confirm</twig:ea:Button>
+    </twig:block>
+</twig:ea:Modal>

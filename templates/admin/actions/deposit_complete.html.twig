@@ -1,37 +1,23 @@
 {# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
 {# @var action \EasyCorp\Bundle\EasyAdminBundle\Dto\ActionDto #}
-<button class="btn btn-success" data-action-name="complete" data-bs-toggle="modal" data-bs-target="#modal-complete">
-    <i class="fa fa-check btn-icon"></i>
-    <span class="btn-label">
-        <span class="action-label">Complete</span>
-    </span>
-</button>
+<twig:ea:Modal:Trigger target="#complete-modal" icon="fa fa-check" color="success">Complete</twig:ea:Modal:Trigger>
 
-<div id="modal-complete" class="modal fade" tabindex="-1" aria-modal="true" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-body">
-                <h4>Do you want to complete this deposit?</h4>
-                <form id="complete-form" action="{{ action.linkUrl }}" method="POST">
-                    <input type="hidden" name="_token" value="{{ csrf_token('complete') }}">
-                    <div class="field-number form-group">
-                        <label for="profit" class="form-control-label">Profit:</label>
-                        <div class="form-widget">
-                            <input type="number" id="profit" name="profit" value="{{ ea().entity.instance.profit | number_format(2) }}"
-                                   inputmode="decimal" class="form-control" step="any"
-                            >
-                        </div>
-                    </div>
-                </form>
+<twig:ea:Modal id="complete-modal" title="Do you want to complete this deposit?">
+    <twig:block name="body">
+        <form id="complete-form" action="{{ action.linkUrl }}" method="POST">
+            <input type="hidden" name="_token" value="{{ csrf_token('complete') }}">
+            <div class="field-number form-group">
+                <label for="profit" class="form-control-label">Profit:</label>
+                <div class="form-widget">
+                    <input type="number" id="profit" name="profit" value="{{ ea().entity.instance.profit | number_format(2) }}"
+                           inputmode="decimal" class="form-control" step="any"
+                    >
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" data-bs-dismiss="modal" class="btn btn-secondary">
-                    <span class="btn-label">Cancel</span>
-                </button>
-                <button type="submit" data-bs-dismiss="modal" class="btn btn-success" id="modal-complete-button" form="complete-form">
-                    <span class="btn-label">Complete</span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+        </form>
+    </twig:block>
+    <twig:block name="footer">
+        <twig:ea:Modal:Close>Cancel</twig:ea:Modal:Close>
+        <twig:ea:Button color="success" variant="solid" data-bs-dismiss="modal" form="complete-form">Complete</twig:ea:Button>
+    </twig:block>
+</twig:ea:Modal>

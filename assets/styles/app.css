@@ -3,14 +3,20 @@
 }
 
 .actions .btn {
+    --button-active-bg: none;
     --button-bg: none;
     --button-border-width: 0;
-    --button-box-shadow: none;
-    --button-color: var(--link-color);
     --button-hover-bg: none;
-    --button-hover-color: var(--link-hover-color);
     --button-padding-x: 0;
-    --button-padding-y: 0;
+
+    &:hover {
+        text-decoration: var(--button-hover-decoration, underline);
+        text-underline-offset: 3px;
+    }
+
+    &[data-bs-toggle] {
+        --button-hover-decoration: none;
+    }
 }
 .actions .btn .icon {
     display: none;

@@ -1,16 +1,13 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
 
 {% block page_title %}Analyze{% endblock %}
+{% block content_title %}Analyze{% endblock %}
 
 {% block head_stylesheets %}
 {{ parent() }}
 <style>
-a[aria-expanded="false"] .icon {
-    transform: rotate(-90deg);
-    display: inline-block;
-}
-a[aria-expanded="true"] .icon {
-    transform: rotate(90deg);
+.tab-content a[aria-expanded="true"] i {
+    transform: rotate(180deg);
 }
 .collapsing {
     transition: none;
@@ -68,7 +65,7 @@ a[aria-expanded="true"] .icon {
         <div class="tab-pane{% if index == 0 %} show active{% endif %}" id="{{ month.id }}" role="tabpanel">
             <div class="row row-gap-3">
                 <div class="col-md-4">
-                    <h2>
+                    <h2 class="mt-0">
                         Expenses:
                         <span data-price="{{ month.total_expenses }}">{{ month.total_expenses | price }}</span>
                     </h2>
@@ -123,7 +120,7 @@ a[aria-expanded="true"] .icon {
                                         aria-expanded="false"
                                         aria-controls="{{ tagCollapsibleId }}"
                                     >
-                                        <twig:ea:Icon name="internal:chevron-left" />
+                                        <i class="fa fa-chevron-down"></i>
                                     </a>
                                 </td>
                             </tr>
