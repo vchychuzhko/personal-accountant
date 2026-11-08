@@ -73,13 +73,6 @@ class CurrencyCrudController extends AbstractCrudController
             ArrayField::new('active_investments')
                 ->setTemplatePath('admin/fields/investments_by_currency.html.twig')
                 ->onlyOnDetail(),
-
-            FormField::addFieldset('Loans')
-                ->addCssClass('form-fieldset--no-labels')
-                ->onlyOnDetail(),
-            AssociationField::new('loans')
-                ->setTemplatePath('admin/fields/loans_by_currency.html.twig')
-                ->onlyOnDetail(),
         ];
     }
 

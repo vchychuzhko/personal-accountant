@@ -12,7 +12,6 @@ use App\Repository\DepositRepository;
 use App\Repository\ExchangeRepository;
 use App\Repository\IncomeRepository;
 use App\Repository\InvestmentRepository;
-use App\Repository\LoanRepository;
 use App\Repository\PaymentRepository;
 use App\Utils\PriceUtils;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
@@ -45,7 +44,6 @@ class DashboardController extends AbstractDashboardController
         private readonly ExchangeRepository $exchangeRepository,
         private readonly IncomeRepository $incomeRepository,
         private readonly InvestmentRepository $investmentRepository,
-        private readonly LoanRepository $loanRepository,
         private readonly PaymentRepository $paymentRepository,
         private readonly TagAwareCacheInterface $cache,
     ) {
@@ -65,7 +63,6 @@ class DashboardController extends AbstractDashboardController
             'difference_this_month' => PriceUtils::format($incomesThisMonth + $exchangeDifferenceThisMonth - $expensesThisMonth),
             'total_in_deposits' => PriceUtils::format($this->getTotalInDeposits()),
             'total_in_investments' => PriceUtils::format($this->getTotalInInvestments()),
-            'total_in_loans' => PriceUtils::format($this->getTotalInLoans()),
             'main_charts' => [
                 [
                     'id' => 'this_month',
@@ -122,7 +119,6 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(InvestmentCrudController::class, 'Investment', 'fas fa-arrow-trend-up')
             ->setQueryParameter('filters[share][comparison]', '>')
             ->setQueryParameter('filters[share][value]', 0);
-        yield MenuItem::linkTo(LoanCrudController::class, 'Loan', 'fas fa-sack-dollar');
         yield MenuItem::section();
         yield MenuItem::linkTo(CurrencyCrudController::class, 'Currency', 'fas fa-dollar');
         yield MenuItem::linkTo(TagCrudController::class, 'Tag', 'fas fa-tag');
@@ -185,18 +181,6 @@ class DashboardController extends AbstractDashboardController
         }
 
         return $totalInDeposits;
-    }
-
-    private function getTotalInLoans(): float
-    {
-        $loans = $this->loanRepository->findAll();
-        $totalInLoans = 0;
-
-        foreach ($loans as $loan) {
-            $totalInLoans += $loan->getAmountInUsd();
-        }
-
-        return $totalInLoans;
     }
 
     private function getTotalInInvestments(): float

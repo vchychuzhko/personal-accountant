@@ -34,12 +34,6 @@ class Currency
     private Collection $balances;
 
     /**
-     * @var Collection<int, Loan>
-     */
-    #[ORM\OneToMany(targetEntity: Loan::class, mappedBy: 'currency')]
-    private Collection $loans;
-
-    /**
      * @var Collection<int, Investment>
      */
     #[ORM\OneToMany(targetEntity: Investment::class, mappedBy: 'currency')]
@@ -48,7 +42,6 @@ class Currency
     public function __construct()
     {
         $this->balances = new ArrayCollection();
-        $this->loans = new ArrayCollection();
         $this->investments = new ArrayCollection();
     }
 
@@ -171,36 +164,6 @@ class Currency
             ->filter(fn(Deposit $deposit) => $deposit->isActive())
             ->toArray()
         ;
-    }
-
-    /**
-     * @return Collection<int, Loan>
-     */
-    public function getLoans(): Collection
-    {
-        return $this->loans;
-    }
-
-    public function addLoan(Loan $loan): static
-    {
-        if (!$this->loans->contains($loan)) {
-            $this->loans->add($loan);
-            $loan->setCurrency($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLoan(Loan $loan): static
-    {
-        if ($this->loans->removeElement($loan)) {
-            // set the owning side to null (unless already changed)
-            if ($loan->getCurrency() === $this) {
-                $loan->setCurrency(null);
-            }
-        }
-
-        return $this;
     }
 
     /**

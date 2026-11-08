@@ -92,7 +92,6 @@ Panel is available by default at - https://&lt;your-localhost&gt;/admin
 |  Exchange  | Transfer between Balances                   |
 |  Deposit   | Open or completed deposits                  |
 | Investment | Records of purchased shares                 |
-|    Loan    | Loans owed by person                        |
 |    Tag     | Payment tags for expenses organizing        |
 
 * Creating Income, Payment, Exchange or Deposit will update related Balance amount.
