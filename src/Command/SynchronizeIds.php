@@ -11,9 +11,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+/**
+ * @deprecated
+ */
 #[AsCommand(
     name: 'app:sync-ids',
-    description: 'Update all IDs according to their created_at order',
+    description: 'Update IDs according to their created_at order',
 )]
 class SynchronizeIds extends Command
 {
@@ -36,6 +39,8 @@ class SynchronizeIds extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $entitiesToSync = [];
+
+        $io->warning('This command is deprecated');
 
         if ($input->getOption('income')) {
             $entitiesToSync[] = 'income';
@@ -86,13 +91,33 @@ class SynchronizeIds extends Command
             return;
         }
 
-        $this->connection->executeStatement(sprintf('TRUNCATE TABLE `%s`', $entityName));
-        $output->writeln('Table is truncated.');
-
-        foreach ($entities as $entity) {
-            $this->connection->insert($entityName, $entity);
-        }
+        $this->syncTable($entityName, $entities, $io);
 
         $io->success(sprintf('IDs for "%s" are synced!', $entityName));
+    }
+
+    private function syncTable(string $entityName, array $entities, SymfonyStyle $io): void
+    {
+        $tempTable = sprintf('%s_backup_%s', $entityName, date('Ymd_His'));
+
+        try {
+            $this->connection->executeStatement(sprintf('CREATE TABLE `%s` LIKE `%s`', $tempTable, $entityName));
+            $this->connection->executeStatement(sprintf('INSERT INTO `%s` SELECT * FROM `%s`', $tempTable, $entityName));
+            $io->writeln(sprintf('Backup created: `%s`.', $tempTable));
+
+            $this->connection->executeStatement(sprintf('TRUNCATE TABLE `%s`', $entityName));
+            $io->writeln('Table is truncated.');
+
+            foreach ($entities as $entity) {
+                $this->connection->insert($entityName, $entity);
+            }
+
+            $this->connection->executeStatement(sprintf('DROP TABLE `%s`', $tempTable));
+            $io->writeln('Data successfully inserted. Backup removed.');
+        } catch (\Throwable $e) {
+            $io->warning(sprintf('Aborting due to error, original data is preserved: `%s`', $tempTable));
+
+            throw $e;
+        }
     }
 }
