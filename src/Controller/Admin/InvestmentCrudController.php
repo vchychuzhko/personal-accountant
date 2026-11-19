@@ -120,10 +120,26 @@ class InvestmentCrudController extends AbstractCrudController
 
             FormField::addFieldset('Incomes')
                 ->addCssClass('form-fieldset--no-labels'),
-            AssociationField::new('incomes')
-                ->setTemplatePath('admin/fields/incomes_by_investment.html.twig')
+            AssociationField::new('incomes') // edit for all incomes
                 ->autocomplete()
-                ->hideOnIndex(),
+                ->onlyOnForms(),
+            AssociationField::new('incomes') // display only incomes
+                ->setTemplatePath('admin/fields/incomes_by_investment.html.twig')
+                ->formatValue(function ($value) {
+                    return $value->filter(fn(Income $income) => !$income->isDividend());
+                })
+                ->onlyOnDetail(),
+
+            FormField::addFieldset('Dividends')
+                ->addCssClass('form-fieldset--no-labels')
+                ->onlyOnDetail(),
+            AssociationField::new('incomes') // display only dividends
+                ->setTemplatePath('admin/fields/incomes_by_investment.html.twig')
+                ->addCssClass('investment__dividends')
+                ->formatValue(function ($value) {
+                    return $value->filter(fn(Income $income) => $income->isDividend());
+                })
+                ->onlyOnDetail(),
         ];
     }
 

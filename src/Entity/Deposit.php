@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\DepositRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -55,10 +57,18 @@ class Deposit
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $end_date = null;
 
+    /**
+     * @var Collection<int, Income>
+     */
+    #[ORM\OneToMany(targetEntity: Income::class, mappedBy: 'deposit')]
+    #[ORM\OrderBy(['created_at' => 'DESC'])]
+    private Collection $incomes;
+
     public function __construct()
     {
         $this->status = self::STATUS_ACTIVE;
         $this->start_date = new \DateTime();
+        $this->incomes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -226,6 +236,36 @@ class Deposit
     public function setEndDate(\DateTimeInterface $end_date): static
     {
         $this->end_date = $end_date;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Income>
+     */
+    public function getIncomes(): Collection
+    {
+        return $this->incomes;
+    }
+
+    public function addIncome(Income $income): static
+    {
+        if (!$this->incomes->contains($income)) {
+            $this->incomes->add($income);
+            $income->setDeposit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeIncome(Income $income): static
+    {
+        if ($this->incomes->removeElement($income)) {
+            // set the owning side to null (unless already changed)
+            if ($income->getDeposit() === $this) {
+                $income->setDeposit(null);
+            }
+        }
 
         return $this;
     }

@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Deposit;
 use App\Entity\Income;
 use App\Utils\PriceUtils;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
@@ -21,7 +22,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\PercentField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
@@ -73,8 +73,6 @@ class DepositCrudController extends AbstractCrudController
         return [
             FormField::addColumn(8),
             FormField::addFieldset(),
-            IdField::new('id')
-                ->onlyOnIndex(),
             TextField::new('name'),
             AssociationField::new('balance'),
 
@@ -102,9 +100,31 @@ class DepositCrudController extends AbstractCrudController
                 ->hideOnForm(),
             NumberField::new('profit_in_usd', 'Profit in USD')
                 ->formatValue(function ($value) {
-                    return $value ? PriceUtils::format($value): $value;
+                    return $value ? PriceUtils::format($value) : $value;
                 })
                 ->hideOnForm(),
+
+            FormField::addFieldset('Incomes')
+                ->addCssClass('form-fieldset--no-labels'),
+            AssociationField::new('incomes') // edit for all incomes
+                ->autocomplete()
+                ->onlyOnForms(),
+            AssociationField::new('incomes') // display only incomes
+                ->setTemplatePath('admin/fields/incomes_by_deposit.html.twig')
+                ->formatValue(function ($value) {
+                    return $value->filter(fn(Income $income) => !$income->isDividend());
+                })
+                ->onlyOnDetail(),
+
+            FormField::addFieldset('Dividends')
+                ->addCssClass('form-fieldset--no-labels')
+                ->onlyOnDetail(),
+            AssociationField::new('incomes') // display only dividends
+                ->setTemplatePath('admin/fields/incomes_by_deposit.html.twig')
+                ->formatValue(function ($value) {
+                    return $value->filter(fn(Income $income) => $income->isDividend());
+                })
+                ->onlyOnDetail(),
 
             FormField::addColumn(4),
             FormField::addFieldset(),
@@ -183,12 +203,16 @@ class DepositCrudController extends AbstractCrudController
 
         $profit = (float) $request->request->get('profit');
 
-        $income = new Income();
-        $income
-            ->setName('Yield from "' . $deposit->getName() . '" (#' . $deposit->getId() . ')')
-            ->setBalance($deposit->getBalance())
-            ->setAmount($profit);
-        $this->entityManager->persist($income);
+        if ($profit > 0) {
+            $income = new Income();
+            $income
+                ->setName('Yield from "' . $deposit->getName() . '" (#' . $deposit->getId() . ')')
+                ->setBalance($deposit->getBalance())
+                ->setDeposit($deposit)
+                ->setAmount($profit);
+
+            $this->entityManager->persist($income);
+        }
 
         $balance = $deposit->getBalance();
         $balance->setAmount($balance->getAmount() + $deposit->getAmount() + $profit);
@@ -255,8 +279,43 @@ class DepositCrudController extends AbstractCrudController
         $entityManager->persist($balance);
         $entityManager->flush();
 
+        $this->syncIncomes($entityManager, $entityInstance);
+
         $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
         parent::persistEntity($entityManager, $entityInstance);
+    }
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param Deposit $entityInstance
+     * @return void
+     */
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        $this->syncIncomes($entityManager, $entityInstance);
+
+        parent::updateEntity($entityManager, $entityInstance);
+    }
+
+    private function syncIncomes(EntityManagerInterface $entityManager, Deposit $entityInstance): void
+    {
+        $currentIncomes = new ArrayCollection($entityInstance->getIncomes()->toArray());
+
+        $existingIncomes = $entityManager->getRepository(Income::class)->findBy(['deposit' => $entityInstance]);
+
+        // Detach removed
+        foreach ($existingIncomes as $income) {
+            if (!$currentIncomes->contains($income)) {
+                $income->setDeposit(null);
+                $entityManager->persist($income);
+            }
+        }
+
+        // Attach added
+        foreach ($currentIncomes as $income) {
+            $income->setDeposit($entityInstance);
+            $entityManager->persist($income);
+        }
     }
 }

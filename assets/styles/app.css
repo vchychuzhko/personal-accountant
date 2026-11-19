@@ -2,6 +2,11 @@
     display: none;
 }
 
+.investment__dividends [data-column="share"],
+.investment__dividends [data-column="price"] {
+    display: none;
+}
+
 .actions .btn {
     --button-active-bg: none;
     --button-bg: none;

@@ -1,0 +1,38 @@
+{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
+{# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
+{# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
+{% if (field.formattedValue is empty) %}
+    <span>-</span>
+{% else %}
+    <table class="table datagrid">
+        <thead>
+        <tr>
+            <th data-column="name"><span>Name</span></th>
+            <th data-column="amount"><span>Amount</span></th>
+            <th data-column="created_at"><span>Created At</span></th>
+            <th><span class="visually-hidden">Actions</span></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for income in field.formattedValue %}
+            <tr>
+                <td data-column="name" data-label="Name">{{ income.name }}</td>
+                <td data-column="amount" data-label="Amount">{{ income.amount | price(income.balance.currency.format) }}</td>
+                <td data-column="created_at" data-label="Created At">
+                    <time datetime="{{ income.createdAt | date('c') }}" title="{{ income.createdAt | date('r') }}">{{ income.createdAt | date('d.m.Y H:i') }}</time>
+                </td>
+                <td class="actions">
+                    <a href="{{ ea_url()
+                        .unsetAll()
+                        .setController('App\\Controller\\Admin\\IncomeCrudController')
+                        .setAction('detail')
+                        .setEntityId(income.id)
+                    }}">
+                        Show
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}

@@ -8,6 +8,12 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: IncomeRepository::class)]
 class Income
 {
+    public const TYPE_DIVIDEND = 1;
+
+    public const TYPES_MAP = [
+        self::TYPE_DIVIDEND => 'Dividend',
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -28,6 +34,12 @@ class Income
 
     #[ORM\ManyToOne(inversedBy: 'incomes')]
     private ?Investment $investment = null;
+
+    #[ORM\ManyToOne(inversedBy: 'deposits')]
+    private ?Deposit $deposit = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $type = null;
 
     public function __construct()
     {
@@ -123,6 +135,40 @@ class Income
     public function setInvestment(?Investment $investment): static
     {
         $this->investment = $investment;
+
+        return $this;
+    }
+
+    public function getDeposit(): ?Deposit
+    {
+        return $this->deposit;
+    }
+
+    public function setDeposit(?Deposit $deposit): static
+    {
+        $this->deposit = $deposit;
+
+        return $this;
+    }
+
+    public function getType(): ?int
+    {
+        return $this->type;
+    }
+
+    public function getTypeLabel(): ?string
+    {
+        return self::TYPES_MAP[$this->getType()] ?? null;
+    }
+
+    public function isDividend(): bool
+    {
+        return $this->getType() === self::TYPE_DIVIDEND;
+    }
+
+    public function setType(?int $type): static
+    {
+        $this->type = $type;
 
         return $this;
     }

@@ -19,9 +19,9 @@
         {% for payment in field.value %}
             <tr>
                 <td data-column="name" data-label="Name">{{ payment.name }}</td>
-                <td data-column="share" data-label="Share">{{ payment.share | number_format(4) }}</td>
+                <td data-column="share" data-label="Share">{{ payment.share | number_format(4) | trim('0', 'right') | trim('.', 'right') }}</td>
                 <td data-column="amount" data-label="Amount">{{ payment.amount | price(payment.balance.currency.format) }}</td>
-                <td data-column="price" data-label="Price">{{ payment.pricePerShare | price(payment.balance.currency.format) }}</td>
+                <td data-column="price" data-label="Price">{{ (payment.share ? payment.pricePerShare : 0) | price(payment.balance.currency.format) }}</td>
                 <td data-column="created_at" data-label="Created At">
                     <time datetime="{{ payment.createdAt | date('c') }}" title="{{ payment.createdAt | date('r') }}">{{ payment.createdAt | date('d.m.Y H:i') }}</time>
                 </td>

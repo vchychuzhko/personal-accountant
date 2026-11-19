@@ -1,7 +1,7 @@
 {# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
 {# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
-{% if (field.value is empty) %}
+{% if (field.formattedValue is empty) %}
     <span>-</span>
 {% else %}
     <table class="table datagrid">
@@ -16,12 +16,12 @@
         </tr>
         </thead>
         <tbody>
-        {% for income in field.value %}
+        {% for income in field.formattedValue %}
             <tr>
                 <td data-column="name" data-label="Name">{{ income.name }}</td>
-                <td data-column="share" data-label="Share">{{ income.share | number_format(4) }}</td>
+                <td data-column="share" data-label="Share">{{ income.share | number_format(4) | trim('0', 'right') | trim('.', 'right') }}</td>
                 <td data-column="amount" data-label="Amount">{{ income.amount | price(income.balance.currency.format) }}</td>
-                <td data-column="price" data-label="Price">{{ income.pricePerShare | price(income.balance.currency.format) }}</td>
+                <td data-column="price" data-label="Price">{{ (income.share ? income.pricePerShare : 0) | price(income.balance.currency.format) }}</td>
                 <td data-column="created_at" data-label="Created At">
                     <time datetime="{{ income.createdAt | date('c') }}" title="{{ income.createdAt | date('r') }}">{{ income.createdAt | date('d.m.Y H:i') }}</time>
                 </td>

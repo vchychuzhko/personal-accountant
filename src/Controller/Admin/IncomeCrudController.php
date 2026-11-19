@@ -21,6 +21,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
@@ -34,7 +35,7 @@ class IncomeCrudController extends AbstractCrudController
     public function __construct(
         private readonly ConfigurationRepository $configurationRepository,
         private readonly TagAwareCacheInterface $cache,
-        private readonly AdminUrlGenerator $adminUrlGenerator
+        private readonly AdminUrlGenerator $adminUrlGenerator,
     ) {
     }
 
@@ -115,6 +116,11 @@ class IncomeCrudController extends AbstractCrudController
                 ->setFormat('dd.MM.yyyy HH:mm')
                 ->setTimezone($timezone)
                 ->setHelp($timezone),
+            AssociationField::new('deposit')
+                ->hideOnIndex(),
+            ChoiceField::new('type')
+                ->setChoices(array_flip(Income::TYPES_MAP))
+                ->hideOnIndex(),
         ];
     }
 
