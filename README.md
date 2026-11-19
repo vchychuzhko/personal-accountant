@@ -64,7 +64,7 @@ Drop `--env=prod` flag for development.
 
 ### Create Admin User
 
-To create initial admin user, use this command:
+To create the initial admin user, use this command:
 
 ```bash
 php bin/console app:create-admin
@@ -74,33 +74,34 @@ php bin/console app:create-admin
 
 ### Web
 
-Panel is available by default at - https://&lt;your-localhost&gt;/admin
+Panel is available by default at - https://your.domain/admin
 
-* On Configuration page you can set API key for [Currency API](https://currencyapi.com/) and [EODHD API](https://eodhd.com/) services.
-* Dashboard charts are cacheable and can be refreshed manually on Configuration page.
-* Apps page has deposit calculator and currency converter.
-* All dates are stored in UTC. You can set your timezone for frontend representation and form inputs in Configuration.
+* On the Configuration page you can set API keys for [Currency API](https://currencyapi.com/) and [EODHD API](https://eodhd.com/) services.
+* Dashboard charts are cacheable and can be refreshed manually on the Configuration page.
+* Apps page has a deposit calculator and currency converter.
+* All dates are stored in UTC. You can set your timezone in Configuration.
 
 ### Entities
 
-|    Name    | Description                                 |
-|:----------:|---------------------------------------------|
-|  Currency  | Core entity that allows managing currencies |
-|  Balance   | Balance representation                      |
-|   Income   | Income attached to Balance                  |
-|  Payment   | Payment or transaction attached to Balance  |
-|  Exchange  | Transfer between Balances                   |
-|  Deposit   | Open or completed deposits                  |
-| Investment | Records of purchased shares                 |
-|    Tag     | Payment tags for expenses organizing        |
+|    Name    | Description                                       |
+|:----------:|---------------------------------------------------|
+|  Currency  | Core entity that allows managing currencies       |
+|  Balance   | Balance representation                            |
+|   Income   | Income related to Balance, Deposit or Investement. |
+|  Payment   | Payment related to Balance or Investment          |
+|  Exchange  | Transfer between Balances                         |
+|  Deposit   | Open or completed Deposit                         |
+| Investment | Record of purchased shares                        |
+|    Tag     | Payment tag for expenses organizing               |
 
-* Creating Income, Payment, Exchange or Deposit will update related Balance amount.
-* On Deposit completion, initial amount is returned to the Balance and Income with interest is created.
+* Creating Income, Payment, Exchange or Deposit will update the related Balance amount.
+* On Deposit completion, the initial amount is returned to the Balance and Income with interest is created.
 * Payment and Income can be linked to Investment, in that case share will be extracted from transaction name (e.g. `XTB GOOG 2.5` -> 2.5 shares of Google on XTB platform) 
+* Income can have "Dividend" type, this will affect its display on Deposit and Investment pages.
 
 ### Commands
 
-#### Sync Payment or Income IDs according to created_at field
+#### Sync Payment or Income IDs according to the created_at field
 
 ```bash
 php bin/console app:sync-ids
