@@ -111,6 +111,16 @@ class InvestmentCrudController extends AbstractCrudController
                 })
                 ->hideOnForm(),
 
+            FormField::addFieldset()
+                ->hideOnForm(),
+            NumberField::new('dividends')
+                ->formatValue(function ($value, Investment $entity) {
+                    $currency = $entity->getCurrency();
+
+                    return $value ? PriceUtils::format($value, $currency->getFormat()) : $value;
+                })
+                ->onlyOnDetail(),
+
             FormField::addFieldset('Payments')
                 ->addCssClass('form-fieldset--no-labels'),
             AssociationField::new('payments')

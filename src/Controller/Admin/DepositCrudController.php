@@ -89,6 +89,13 @@ class DepositCrudController extends AbstractCrudController
                     return $value ? PriceUtils::format($value, $currency->getFormat()) : $value;
                 })
                 ->onlyOnDetail(),
+            NumberField::new('dividends')
+                ->formatValue(function ($value, Deposit $entity) {
+                    $currency = $entity->getBalance()->getCurrency();
+
+                    return $value ? PriceUtils::format($value, $currency->getFormat()) : $value;
+                })
+                ->onlyOnDetail(),
 
             FormField::addFieldset()
                 ->onlyOnDetail(),
@@ -103,6 +110,11 @@ class DepositCrudController extends AbstractCrudController
                     return $value ? PriceUtils::format($value) : $value;
                 })
                 ->hideOnForm(),
+            NumberField::new('dividends_in_usd', 'Dividends in USD')
+                ->formatValue(function ($value) {
+                    return $value ? PriceUtils::format($value) : $value;
+                })
+                ->onlyOnDetail(),
 
             FormField::addFieldset('Incomes')
                 ->addCssClass('form-fieldset--no-labels'),

@@ -142,8 +142,30 @@ class Deposit
     {
         $balance = $this->getBalance();
         $currency = $balance->getCurrency();
+        $profit = $this->getProfit();
 
-        return $this->getProfit() ? $this->getProfit() / $currency->getRate() : null;
+        return $profit ? $profit / $currency->getRate() : null;
+    }
+
+    /**
+     * Return sum of dividends if any.
+     *
+     * @return float|null
+     */
+    public function getDividends(): ?float
+    {
+        $dividendIncomes = $this->getIncomes()->filter(fn(Income $income) => $income->isDividend());
+
+        return $dividendIncomes->count() ? $dividendIncomes->reduce(fn($acc, Income $income) => $acc + $income->getAmount(), 0) : null;
+    }
+
+    public function getDividendsInUsd(): ?float
+    {
+        $balance = $this->getBalance();
+        $currency = $balance->getCurrency();
+        $dividends = $this->getDividends();
+
+        return $dividends ? $dividends / $currency->getRate() : null;
     }
 
     public function setProfit(float $profit): static

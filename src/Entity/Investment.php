@@ -158,9 +158,21 @@ class Investment
 
     public function getSoldValue(): ?float
     {
-        $incomes = $this->getIncomes();
+        $incomes = $this->getIncomes()->filter(fn(Income $income) => !$income->isDividend());
 
         return $incomes->reduce(fn(float $value, Income $income) => $value + $income->getAmount(), 0);
+    }
+
+    /**
+     * Return sum of dividends if any.
+     *
+     * @return float|null
+     */
+    public function getDividends(): ?float
+    {
+        $dividendIncomes = $this->getIncomes()->filter(fn(Income $income) => $income->isDividend());
+
+        return $dividendIncomes->count() ? $dividendIncomes->reduce(fn($acc, Income $income) => $acc + $income->getAmount(), 0) : null;
     }
 
     public function addIncome(Income $income): static
