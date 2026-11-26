@@ -14,10 +14,15 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
+    public function __construct(
+        readonly private AdminRepository $adminRepository
+    ) {
+    }
+
     #[Route(path: '/login', name: 'app_login')]
-    public function login(AuthenticationUtils $authenticationUtils, AdminRepository $adminRepository): Response
+    public function login(AuthenticationUtils $authenticationUtils): Response
     {
-        if ($adminRepository->count() === 0) {
+        if ($this->adminRepository->count() === 0) {
             $this->addFlash('info', 'Please create the first admin account.');
 
             return $this->render('security/register.html.twig');
@@ -39,8 +44,15 @@ class SecurityController extends AbstractController
     public function register(
         Request $request,
         EntityManagerInterface $entityManager,
-        UserPasswordHasherInterface $passwordHasher
+        UserPasswordHasherInterface $passwordHasher,
     ): Response {
+        if (!$this->isCsrfTokenValid('register', $request->request->get('_csrf_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
+        if ($this->adminRepository->count() > 0) {
+            throw $this->createAccessDeniedException();
+        }
+
         $username = $request->request->get('_username');
         $password = $request->request->get('_password');
 

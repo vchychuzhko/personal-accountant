@@ -32,6 +32,11 @@
         .form-register input:focus {
             z-index: 1;
         }
+        .form-register button {
+            --button-c-tone: #133359;
+            --button-border-radius: var(--bs-border-radius);
+            --button-font-weight: 400;
+        }
     </style>
 {% endblock %}
 
@@ -53,7 +58,9 @@
         <label class="sr-only" for="password">Password</label>
         <input class="form-control w-100 py-2" type="password" id="password" name="_password" placeholder="Password" required>
 
-        <button class="btn btn-primary w-100 mt-3 py-2 fs-5 justify-content-center">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
+
+        <button class="btn btn-primary btn-solid w-100 mt-3 py-2 fs-5 justify-content-center">
             Register
         </button>
 
