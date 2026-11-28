@@ -26,7 +26,8 @@ class ConfigurationCrudController extends AbstractCrudController
         return [
             FormField::addColumn(12),
             FormField::addFieldset(),
-            TextField::new('label'),
+            TextField::new('label')
+                ->setDisabled(),
             TextField::new('value')
                 ->hideOnIndex()
                 ->setTemplatePath('admin/fields/secured_text.html.twig'),

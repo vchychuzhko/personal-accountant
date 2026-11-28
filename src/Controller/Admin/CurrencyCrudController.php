@@ -105,16 +105,14 @@ class CurrencyCrudController extends AbstractCrudController
         try {
             /** @var ConfigurationRepository $configRepository */
             $configRepository = $this->entityManager->getRepository(Configuration::class);
-
             $apiKey = $configRepository->getByName('currency_api/key');
 
             if (!$apiKey) {
-                throw new \LogicException('Currency API Key is not set');
+                throw new \UnexpectedValueException('"Currency API Key" is not set');
             }
 
             /** @var CurrencyRepository $currencyRepository */
             $currencyRepository = $this->entityManager->getRepository(Currency::class);
-
             $currencies = $currencyRepository->findNonUsd();
 
             $url = self::CURRENCY_API_LATEST_ENDPOINT
@@ -140,6 +138,8 @@ class CurrencyCrudController extends AbstractCrudController
             $this->cache->invalidateTags([DashboardController::DASHBOARD_CACHE_TAG]);
 
             $this->addFlash('success', 'Rates are successfully updated');
+        } catch (\UnexpectedValueException $e) {
+            $this->addFlash('warning', '"Currency API Key" is not set in Configuration. Read more - <a href="https://currencyapi.com/docs/latest">Currency API</a>');
         } catch (\LogicException $e) {
             $this->addFlash('error', $e->getMessage());
         }

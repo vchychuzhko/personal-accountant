@@ -189,16 +189,14 @@ class InvestmentCrudController extends AbstractCrudController
         try {
             /** @var ConfigurationRepository $configRepository */
             $configRepository = $this->entityManager->getRepository(Configuration::class);
-
             $apiKey = $configRepository->getByName('stocks_api/key');
 
             if (!$apiKey) {
-                throw new \LogicException('Stocks API Key is not set');
+                throw new \UnexpectedValueException('"Stocks API Key" is not set');
             }
 
             /** @var InvestmentRepository $investmentRepository */
             $investmentRepository = $this->entityManager->getRepository(Investment::class);
-
             $investments = $investmentRepository->findAllActive();
 
             if (!\count($investments)) {
@@ -238,6 +236,8 @@ class InvestmentCrudController extends AbstractCrudController
             $this->entityManager->flush();
 
             $this->addFlash('success', 'Prices are successfully updated');
+        } catch (\UnexpectedValueException $e) {
+            $this->addFlash('warning', '"Stocks API Key" is not set in Configuration. Read more - <a href="https://eodhd.com/financial-apis/live-ohlcv-stocks-api">EODHD API</a>');
         } catch (\LogicException $e) {
             $this->addFlash('error', $e->getMessage());
         }
